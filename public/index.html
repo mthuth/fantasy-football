@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fantasy Football Agent</title>
+    <link rel="stylesheet" href="/public/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Fantasy Football Agent</h1>
+        <p>Mock-mode Yahoo live draft copilot</p>
+      </div>
+      <div class="badge">MOCK MODE</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel yahoo-dev-panel">
+        <div class="panel-header">
+          <h2>Yahoo Development</h2>
+          <div id="yahoo-status-chip" class="chip"></div>
+        </div>
+        <div class="actions">
+          <button id="connect-yahoo-btn">Connect Yahoo</button>
+          <button id="refresh-yahoo-status-btn" class="secondary">Refresh Status</button>
+          <button id="load-yahoo-games-btn" class="secondary">Load Yahoo Games</button>
+          <button id="load-yahoo-teams-btn" class="secondary">Load Yahoo Teams</button>
+          <button id="discover-yahoo-leagues-btn" class="secondary">Discover Leagues</button>
+          <button id="load-yahoo-draft-results-btn" class="secondary">Load Draft Results</button>
+        </div>
+        <div class="yahoo-league-picker">
+          <label for="yahoo-league-select">Connected Yahoo league</label>
+          <select id="yahoo-league-select"></select>
+          <button id="import-yahoo-league-btn" class="secondary">Import Selected League Rules</button>
+        </div>
+        <div id="yahoo-message" class="meta"></div>
+        <pre id="yahoo-output" class="json-output"></pre>
+      </section>
+
+      <section class="panel league-import-panel">
+        <div class="panel-header">
+          <h2>League Rules</h2>
+          <div id="league-source-chip" class="chip"></div>
+        </div>
+        <div class="actions">
+          <button id="import-sample-league-btn">Import Sample Yahoo Settings</button>
+          <button id="import-custom-league-btn">Import Pasted Settings</button>
+          <button id="reset-league-btn" class="secondary">Reset To Mock Rules</button>
+        </div>
+        <div class="league-import-controls">
+          <label for="league-settings-file">Yahoo settings JSON file</label>
+          <input id="league-settings-file" type="file" accept="application/json,.json">
+          <label for="league-settings-json">Yahoo settings JSON payload</label>
+          <textarea id="league-settings-json" rows="5" placeholder="Paste Yahoo league settings JSON here"></textarea>
+          <div id="league-import-message" class="meta"></div>
+        </div>
+        <div id="league-summary" class="league-summary"></div>
+      </section>
+
+      <section class="panel board-panel">
+        <div class="panel-header">
+          <h2>Draft Board</h2>
+          <div id="pick-status" class="status"></div>
+        </div>
+        <div class="actions">
+          <button id="advance-btn">Advance To My Pick</button>
+          <button id="accept-btn">Draft Top Recommendation</button>
+          <button id="pause-btn" class="secondary">Pause</button>
+          <button id="undo-btn" class="secondary">Undo Last Pick</button>
+          <button id="reset-btn" class="secondary">Reset Mock Draft</button>
+        </div>
+        <div class="manual-controls">
+          <label for="manual-player-search">Manual board correction</label>
+          <input id="manual-player-search" type="search" placeholder="Search available players">
+          <select id="manual-player-select"></select>
+          <div class="actions compact">
+            <button id="draft-current-btn">Draft For Current Team</button>
+            <button id="draft-me-btn" class="secondary">I Drafted This Player</button>
+          </div>
+        </div>
+        <div id="draft-log" class="draft-log"></div>
+      </section>
+
+      <section class="panel recommendations-panel">
+        <div class="panel-header">
+          <h2>Top Recommendations</h2>
+          <div id="league-chip" class="chip"></div>
+        </div>
+        <div id="recommendations" class="recommendations"></div>
+      </section>
+
+      <section class="panel roster-panel">
+        <h2>My Roster</h2>
+        <div id="roster" class="roster"></div>
+      </section>
+
+      <section class="panel available-panel">
+        <h2>Available Players</h2>
+        <div id="available" class="available"></div>
+      </section>
+
+      <section class="panel review-panel">
+        <h2>Post-Draft Review</h2>
+        <div id="review" class="review"></div>
+      </section>
+
+      <section class="panel reports-panel">
+        <div class="panel-header">
+          <h2>Simulation Reports</h2>
+          <div class="actions compact">
+            <button id="run-simulations-btn">Run Strategy Batch</button>
+            <button id="refresh-reports-btn" class="secondary">Refresh Reports</button>
+          </div>
+        </div>
+        <div class="sim-controls">
+          <div>
+            <label for="sim-teams">Teams</label>
+            <input id="sim-teams" type="number" min="4" max="16" value="8">
+          </div>
+          <div>
+            <label for="sim-draft-slot">Draft Slot</label>
+            <input id="sim-draft-slot" type="number" min="1" max="16" value="4">
+          </div>
+          <div>
+            <label for="sim-rounds">Rounds</label>
+            <input id="sim-rounds" type="number" min="4" max="22" value="10">
+          </div>
+          <div>
+            <label for="sim-ppr">Reception</label>
+            <select id="sim-ppr">
+              <option value="0">Standard</option>
+              <option value="0.5" selected>Half PPR</option>
+              <option value="1">Full PPR</option>
+            </select>
+          </div>
+          <div>
+            <label for="sim-opponent-profile">Room</label>
+            <select id="sim-opponent-profile">
+              <option value="agent">Agent-like</option>
+              <option value="adp">ADP Room</option>
+              <option value="rb_heavy">RB Heavy</option>
+              <option value="wr_heavy">WR Heavy</option>
+              <option value="qb_early">QB Early</option>
+            </select>
+          </div>
+          <label class="check-control" for="sim-use-saved-league">
+            <input id="sim-use-saved-league" type="checkbox" checked>
+            <span>Use saved Yahoo/imported league</span>
+          </label>
+        </div>
+        <div id="simulation-run-message" class="meta"></div>
+        <div id="simulation-comparison" class="simulation-comparison"></div>
+        <div id="reports" class="reports"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/public/app.js"></script>
+  </body>
+</html>

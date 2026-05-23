@@ -1,0 +1,39 @@
+{
+  "league": {
+    "leagueId": "12345",
+    "leagueKey": "461.l.12345",
+    "name": "Sample Yahoo Half PPR",
+    "season": "2026",
+    "settings": {
+      "draft_type": "live",
+      "draft_status": "predraft",
+      "roster_positions": {
+        "roster_position": [
+          { "position": "QB", "count": 1 },
+          { "position": "WR", "count": 2 },
+          { "position": "RB", "count": 2 },
+          { "position": "TE", "count": 1 },
+          { "position": "W/R/T", "count": 1 },
+          { "position": "K", "count": 1 },
+          { "position": "DEF", "count": 1 },
+          { "position": "BN", "count": 6 }
+        ]
+      },
+      "stat_modifiers": {
+        "stats": {
+          "stat": [
+            { "name": "Passing Yards", "value": 0.04 },
+            { "name": "Passing Touchdowns", "value": 4 },
+            { "name": "Interceptions", "value": -2 },
+            { "name": "Rushing Yards", "value": 0.1 },
+            { "name": "Rushing Touchdowns", "value": 6 },
+            { "name": "Receptions", "value": 0.5 },
+            { "name": "Receiving Yards", "value": 0.1 },
+            { "name": "Receiving Touchdowns", "value": 6 },
+            { "name": "Fumbles Lost", "value": -2 }
+          ]
+        }
+      }
+    }
+  }
+}
