@@ -1,0 +1,45 @@
+{
+  "source": "mock_projection_sample",
+  "rows": [
+    {
+      "playerId": "p_001",
+      "projectedPoints": 361.4,
+      "sourceRank": 1,
+      "adp": 1.1,
+      "risk": 3,
+      "ceiling": 15.3,
+      "confidence": 0.9,
+      "updatedAt": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "playerId": "p_002",
+      "projectedPoints": 337.2,
+      "sourceRank": 2,
+      "adp": 2.0,
+      "risk": 3,
+      "ceiling": 14.9,
+      "confidence": 0.9,
+      "updatedAt": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "playerId": "p_019",
+      "projectedPoints": 412.8,
+      "sourceRank": 18,
+      "adp": 20.4,
+      "risk": 2,
+      "ceiling": 13.4,
+      "confidence": 0.82,
+      "updatedAt": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "playerId": "p_041",
+      "projectedPoints": 128.6,
+      "sourceRank": 125,
+      "adp": 126.0,
+      "risk": 3,
+      "ceiling": 4.9,
+      "confidence": 0.74,
+      "updatedAt": "2026-05-24T00:00:00.000Z"
+    }
+  ]
+}

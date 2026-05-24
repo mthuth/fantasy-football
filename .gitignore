@@ -1,0 +1,13 @@
+.env
+data/auth/
+data/db/
+data/leagues/
+data/mock/
+data/normalized/
+data/raw/
+data/simulations/
+data/projections/*_merged.json
+
+!data/README.md
+!data/fixtures/
+!data/fixtures/**

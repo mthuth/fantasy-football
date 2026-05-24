@@ -1,0 +1,45 @@
+{
+  "fantasy_content": {
+    "league": [
+      [
+        { "league_key": "461.l.12345" },
+        { "league_id": "12345" },
+        { "name": "Sample Yahoo Half PPR" }
+      ],
+      {
+        "draft_results": {
+          "0": {
+            "draft_result": [
+              { "pick": "1" },
+              { "round": "1" },
+              { "team_key": "461.l.12345.t.1" },
+              { "player_key": "461.p.101" },
+              { "player_id": "101" },
+              { "player_name": "Christian McCaffrey" }
+            ]
+          },
+          "1": {
+            "draft_result": [
+              { "pick": "2" },
+              { "round": "1" },
+              { "team_key": "461.l.12345.t.2" },
+              { "player_key": "461.p.102" },
+              { "player_id": "102" },
+              { "player_name": "CeeDee Lamb" }
+            ]
+          },
+          "2": {
+            "draft_result": [
+              { "pick": "3" },
+              { "round": "1" },
+              { "team_key": "461.l.12345.t.3" },
+              { "player_key": "461.p.999999" },
+              { "player_id": "999999" },
+              { "player_name": "Unmapped Yahoo Player" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
