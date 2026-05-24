@@ -55,7 +55,42 @@ assert.equal(normalized.events[0].matchStatus, "matched");
 assert.equal(normalized.events[1].matchStatus, "manual_required");
 assert.equal(normalized.unmappedPlayers[0].reason, "yahoo_player_not_mapped");
 
+const mappedDraftOrder = normalizeYahooDraftResults({
+  fantasy_content: {
+    league: [
+      { league_key: "461.l.77777" },
+      {
+        draft_results: {
+          0: {
+            draft_result: [
+              { pick: "1" },
+              { team_key: "461.l.77777.t.7" },
+              { player_key: "461.p.7200" },
+            ],
+          },
+        },
+      },
+    ],
+  },
+}, {
+  externalIds: [
+    {
+      player_id: "ply_sleeper_abc",
+      source: "yahoo",
+      source_player_id: "7200",
+    },
+  ],
+  teamKeyToTeamId: {
+    "461.l.77777.t.7": "team_2",
+  },
+  teamCount: 4,
+});
+
+assert.equal(mappedDraftOrder.picks[0].teamId, "team_2");
+assert.equal(mappedDraftOrder.events[0].teamId, "2");
+assert.equal(mappedDraftOrder.picks[0].round, 1);
+
 console.log(JSON.stringify({
   status: "passed",
-  tested: ["Yahoo draftresults normalization", "Yahoo player ID mapping", "unmatched manual fallback"],
+  tested: ["Yahoo draftresults normalization", "Yahoo player ID mapping", "unmatched manual fallback", "explicit Yahoo team key draft-slot mapping"],
 }, null, 2));

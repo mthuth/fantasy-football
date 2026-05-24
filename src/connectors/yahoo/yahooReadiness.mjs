@@ -4,7 +4,7 @@ export function assessYahooLiveDraftReadiness(status, options = {}) {
     check("token_connected", status?.token?.connected === true, "A local Yahoo access token is available."),
     check("refresh_token", status?.token?.hasRefreshToken === true, "A Yahoo refresh token is available for draft-day sessions."),
     check("league_selected", Boolean(options.selectedLeague?.leagueKey), "A Yahoo league has been selected."),
-    check("team_selected", Boolean(options.selectedLeague?.teamKey), "A Yahoo team has been selected."),
+    check("team_selected", Boolean(selectedTeamKey(options.selectedLeague)), "A Yahoo team has been selected."),
     check("draft_results_sync", options.draftResults?.syncStatus === "synced", "Yahoo draft results can be read and normalized."),
     check("player_mapping", mappingReady(options.playerAudit), "The active player pool has usable Yahoo player ID mappings."),
     check("read_only_guardrail", status?.readOnly === true, "Yahoo connector is still read-only."),
@@ -18,6 +18,13 @@ export function assessYahooLiveDraftReadiness(status, options = {}) {
     blockers: blockers.map((item) => item.id),
     nextActions: blockers.map((item) => item.nextAction),
   };
+}
+
+function selectedTeamKey(selectedLeague) {
+  return selectedLeague?.teamKey
+    ?? selectedLeague?.selectedTeamKey
+    ?? selectedLeague?.primaryTeam?.teamKey
+    ?? null;
 }
 
 function mappingReady(playerAudit) {

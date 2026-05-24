@@ -29,6 +29,7 @@ for (const id of [
   "rehearsal-mode",
   "rehearsal-sync-btn",
   "manual-sync-resolution",
+  "sync-event-history",
   "run-simulations-btn",
   "sim-teams",
   "sim-draft-slot",
@@ -39,6 +40,10 @@ for (const id of [
   "simulation-comparison",
   "refresh-reports-btn",
   "connect-yahoo-btn",
+  "refresh-yahoo-readiness-btn",
+  "yahoo-readiness-summary",
+  "yahoo-readiness-checks",
+  "yahoo-readiness-actions",
   "discover-yahoo-leagues-btn",
   "import-yahoo-league-btn",
 ]) {
@@ -49,6 +54,7 @@ for (const endpoint of [
   "/api/league-profile",
   "/api/simulations/run",
   "/api/yahoo/status",
+  "/api/yahoo/readiness",
   "/api/yahoo/auth-url",
   "/api/yahoo/games",
   "/api/yahoo/teams",
@@ -67,9 +73,12 @@ assert.ok(app.includes("Source confidence"), "recommendation cards should show s
 assert.ok(app.includes("strategyPreference"), "recommendation cards should include strategy preference adjustments");
 assert.ok(app.includes("buildRehearsalDraftEvents"), "dashboard should support Yahoo-like draft rehearsal sync");
 assert.ok(app.includes("resolveManualSyncWithSelected"), "dashboard should support manual sync issue resolution");
+assert.ok(app.includes("renderSyncEventHistory"), "dashboard should render sync event queue history");
 assert.ok(app.includes("mergeProjectionSource"), "dashboard should support projection source imports");
 assert.ok(app.includes("Latest Batch Comparison"), "dashboard should render strategy comparison output");
 assert.ok(app.includes("Turn Replay"), "dashboard should render saved recommendation replay details");
+assert.ok(app.includes("Live draft blocked"), "dashboard should render Yahoo readiness blockers");
+assert.ok(app.includes("formatReadinessCheck"), "dashboard should label Yahoo readiness checks");
 
 console.log(JSON.stringify({
   status: "passed",
@@ -79,7 +88,8 @@ console.log(JSON.stringify({
     "dashboard API endpoints are wired in app and server",
     "generated pool and report index hooks exist",
     "pause and source-confidence UI copy exists",
-    "strategy, rehearsal, and projection import hooks exist",
+    "strategy, rehearsal, sync history, and projection import hooks exist",
     "scenario controls and replay UI copy exists",
+    "Yahoo readiness dashboard hooks exist",
   ],
 }, null, 2));

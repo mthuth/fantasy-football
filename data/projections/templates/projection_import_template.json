@@ -1,0 +1,25 @@
+{
+  "source": "my_projection_source",
+  "rows": [
+    {
+      "playerId": "p_001",
+      "projectedPoints": 342.5,
+      "sourceRank": 1,
+      "adp": 1.2,
+      "risk": 3,
+      "ceiling": 14.5,
+      "confidence": 0.85,
+      "updatedAt": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "playerId": "p_002",
+      "projectedPoints": 327.8,
+      "sourceRank": 2,
+      "adp": 2.1,
+      "risk": 3,
+      "ceiling": 14.2,
+      "confidence": 0.85,
+      "updatedAt": "2026-05-24T00:00:00.000Z"
+    }
+  ]
+}

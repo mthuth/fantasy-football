@@ -61,6 +61,7 @@ export function normalizeYahooLeagueSettings(payload, options = {}) {
     leagueKey: options.leagueKey ?? leagueMeta.leagueKey ?? leagueMeta.league_key ?? null,
     name: options.name ?? leagueMeta.name ?? null,
     season: options.season ?? leagueMeta.season ?? null,
+    teamCount: firstFiniteNumber(options.teamCount, leagueMeta.num_teams, leagueMeta.numTeams, settings.num_teams, settings.numTeams),
     scoring,
     rosterSlots,
     draft: {
@@ -157,4 +158,12 @@ function normalizeDraftType(value) {
   if (cleaned.includes("auto")) return "autopick";
   if (cleaned.includes("offline")) return "offline";
   return "snake";
+}
+
+function firstFiniteNumber(...values) {
+  for (const value of values) {
+    const number = Number(value);
+    if (Number.isFinite(number) && number > 0) return number;
+  }
+  return null;
 }

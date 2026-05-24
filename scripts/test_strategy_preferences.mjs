@@ -40,6 +40,21 @@ const wrAdjustment = scoreStrategyPreference({
 
 assert.ok(rbAdjustment.adjustment < wrAdjustment.adjustment);
 
+const fallenValueAdjustment = scoreStrategyPreference({
+  preferences: { strategyProfile: "best_player_available", riskProfile: "balanced" },
+  roster: [],
+  player: { ...wr, adp: 20 },
+  currentPick: 60,
+});
+const reachAdjustment = scoreStrategyPreference({
+  preferences: { strategyProfile: "best_player_available", riskProfile: "balanced" },
+  roster: [],
+  player: { ...wr, adp: 90 },
+  currentPick: 60,
+});
+
+assert.ok(fallenValueAdjustment.adjustment > reachAdjustment.adjustment, "best-player-available should reward players who fall past ADP");
+
 draftPlayer(state, wr.playerId, state.league.userTeamId, "test");
 const recommendations = recommendPlayers(state, state.league.userTeamId, 5, {
   strategyPreferences: { strategyProfile: "best_player_available", riskProfile: "balanced" },
@@ -53,6 +68,7 @@ console.log(JSON.stringify({
   tested: [
     "strategy preference normalization",
     "profile scoring adjustments",
+    "best-player-available market edge direction",
     "recommendation output includes strategy metadata",
   ],
 }, null, 2));

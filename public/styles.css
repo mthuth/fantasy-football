@@ -375,6 +375,65 @@ textarea {
   margin-bottom: 14px;
 }
 
+.sync-event-history {
+  margin-bottom: 14px;
+}
+
+.sync-history-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.sync-history-card.empty {
+  color: var(--muted);
+}
+
+.sync-history-header,
+.sync-event-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sync-event-list {
+  display: grid;
+  gap: 8px;
+}
+
+.sync-event-row {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: white;
+}
+
+.sync-event-row > div:last-child {
+  max-width: 58%;
+  text-align: right;
+}
+
+.sync-event-applied {
+  border-left: 3px solid var(--accent);
+}
+
+.sync-event-skipped {
+  border-left: 3px solid #64748b;
+}
+
+.sync-event-manual_required {
+  border-left: 3px solid var(--warn);
+  background: #fff7ed;
+}
+
+.sync-event-manually_resolved {
+  border-left: 3px solid #2563eb;
+}
+
 .manual-sync-card {
   display: flex;
   align-items: center;
@@ -440,6 +499,85 @@ textarea {
 .sync-stale span:first-child {
   border-color: var(--warn);
   color: var(--warn);
+}
+
+.readiness-dashboard {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.readiness-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.readiness-summary > div,
+.readiness-check,
+.readiness-next-actions {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.readiness-summary strong,
+.readiness-summary span {
+  display: block;
+}
+
+.readiness-ready > div:first-child {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+
+.readiness-blocked > div:first-child {
+  border-color: var(--warn);
+  background: #fff7ed;
+}
+
+.readiness-checks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.readiness-check {
+  display: grid;
+  gap: 6px;
+}
+
+.readiness-check > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.readiness-check span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.readiness-check.ready {
+  border-color: var(--accent);
+}
+
+.readiness-check.blocked {
+  border-color: var(--warn);
+}
+
+.readiness-next-actions ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.readiness-next-actions li {
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .slot-list {
@@ -693,6 +831,8 @@ code {
 
   .sim-controls,
   .comparison-grid,
+  .readiness-summary,
+  .readiness-checks,
   .replay-body,
   .league-roster-view,
   .strategy-controls,
@@ -713,5 +853,15 @@ code {
   .manual-sync-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .sync-event-row,
+  .sync-history-header {
+    flex-direction: column;
+  }
+
+  .sync-event-row > div:last-child {
+    max-width: 100%;
+    text-align: left;
   }
 }

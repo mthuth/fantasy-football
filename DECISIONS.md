@@ -255,6 +255,8 @@ Your answer: keep synthetic K/DST for generated mock mode
 - Waiver/trade scope: post-draft watch lists only decided
 - Generated current-player pool: opt-in engineering mode decided
 - K/DST records: synthetic in generated mock mode decided
+- League scope: multiple Yahoo leagues from day one decided
+- Approval and alert channels: dashboard, email, and Slack decided
 
 ## Recently Executed
 
@@ -307,10 +309,6 @@ Your answer: keep synthetic K/DST for generated mock mode
 
 These questions were carried forward from the older planning file in `/Users/matthuth/Documents/New project/DECISIONS.md`. They are not blockers for the current local mock/dashboard build, but they should be answered before real-season usage or broader automation.
 
-### League Scope
-
-- Should the product optimize for one Yahoo league first, or support multiple Yahoo leagues from day one?
-
 ### Automation Policy
 
 - Can low-risk actions become auto-approved later, or should every paid Yahoo league action always require explicit approval?
@@ -326,7 +324,6 @@ These questions were carried forward from the older planning file in `/Users/mat
 
 ### Recommendation Workflow
 
-- Should draft alerts be dashboard-only, or should Slack/Teams alerts be added?
 - Should manual draft-board corrections stay in the main dashboard, or move to a separate admin/debug panel?
 
 ### Waiver and Trade Strategy
@@ -339,5 +336,5 @@ These questions were carried forward from the older planning file in `/Users/mat
 - Test Yahoo OAuth and read-only draft-results polling against a real Yahoo league or controlled Yahoo mock draft.
 - Choose and license or approve the first real projection/ranking/ADP source.
 - Complete Yahoo player ID mappings for the active player pool, especially K/DST records.
-- Decide the first approval channel implementation: Slack, Teams, Messenger, email, or dashboard-only.
+- Implement approval and alert delivery through dashboard, email, and Slack.
 - Keep all Yahoo write actions disabled until capability gating, user approval, and paid-league confirmation are verified end to end.

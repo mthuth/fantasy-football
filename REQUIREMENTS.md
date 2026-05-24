@@ -523,6 +523,7 @@ For the draft MVP:
 For future production modes:
 - Write actions must be capability-gated.
 - Write actions must be approval-gated.
+- Approval and alert channels must support dashboard, email, and Slack.
 - Paid-league actions must require a separate paid-league confirmation.
 - Payment and league entry actions must remain outside agent execution.
 - Paid leagues must require stronger confirmation.
@@ -542,7 +543,8 @@ The MVP will not include:
 - Best ball modeling.
 - Auction/salary cap draft support.
 - Autonomous moves.
-- Slack or Teams approval flows.
+- Production email or Slack approval flows.
+- Teams, Messenger, SMS, or mobile approval flows.
 - Mobile app.
 
 ## 10. Acceptance Criteria

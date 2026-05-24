@@ -6,6 +6,7 @@ export function applyYahooDraftEventsToState(state, events) {
     skippedAlreadyDrafted: 0,
     stoppedAt: null,
     manualRequired: [],
+    events: [],
   };
 
   const sortedEvents = [...(events ?? [])].sort((a, b) => a.pickNumber - b.pickNumber);
@@ -14,12 +15,20 @@ export function applyYahooDraftEventsToState(state, events) {
     const existingPick = state.drafted.find((pick) => pick.pickNumber === event.pickNumber);
     if (existingPick && existingPick.playerId === event.playerId && existingPick.teamId === normalizeTeamId(event.teamId)) {
       summary.skippedAlreadyDrafted += 1;
+      summary.events.push(buildSyncEvent(event, "skipped", {
+        reason: "already_applied",
+        existingPick,
+      }));
       continue;
     }
     if (existingPick) {
       const manualEvent = { ...event, manualReason: "manual_pick_conflict", existingPick };
       summary.manualRequired.push(manualEvent);
       summary.stoppedAt = manualEvent;
+      summary.events.push(buildSyncEvent(manualEvent, "manual_required", {
+        reason: manualEvent.manualReason,
+        existingPick,
+      }));
       break;
     }
 
@@ -28,11 +37,15 @@ export function applyYahooDraftEventsToState(state, events) {
       const manualEvent = { ...event, manualReason };
       summary.manualRequired.push(manualEvent);
       summary.stoppedAt = manualEvent;
+      summary.events.push(buildSyncEvent(manualEvent, "manual_required", {
+        reason: manualReason,
+      }));
       break;
     }
 
-    draftPlayer(state, event.playerId, normalizeTeamId(event.teamId), "yahoo_draftresults");
+    const pick = draftPlayer(state, event.playerId, normalizeTeamId(event.teamId), "yahoo_draftresults");
     summary.applied += 1;
+    summary.events.push(buildSyncEvent(event, "applied", { pick }));
   }
 
   return summary;
@@ -51,4 +64,19 @@ function getManualReason(state, event) {
 function normalizeTeamId(teamId) {
   const value = String(teamId ?? "");
   return value.startsWith("team_") ? value : `team_${value}`;
+}
+
+function buildSyncEvent(event, status, details = {}) {
+  return {
+    pickNumber: event.pickNumber ?? null,
+    teamId: event.teamId ? normalizeTeamId(event.teamId) : null,
+    playerId: event.playerId ?? null,
+    yahooPlayerId: event.yahooPlayerId ?? null,
+    yahooPlayerName: event.yahooPlayerName ?? null,
+    source: event.source ?? "yahoo_draftresults",
+    status,
+    reason: details.reason ?? null,
+    existingPick: details.existingPick ?? null,
+    appliedPick: details.pick ?? null,
+  };
 }

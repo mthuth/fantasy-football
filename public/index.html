@@ -24,6 +24,7 @@
         <div class="actions">
           <button id="connect-yahoo-btn">Connect Yahoo</button>
           <button id="refresh-yahoo-status-btn" class="secondary">Refresh Status</button>
+          <button id="refresh-yahoo-readiness-btn" class="secondary">Refresh Readiness</button>
           <button id="load-yahoo-games-btn" class="secondary">Load Yahoo Games</button>
           <button id="load-yahoo-teams-btn" class="secondary">Load Yahoo Teams</button>
           <button id="discover-yahoo-leagues-btn" class="secondary">Discover Leagues</button>
@@ -38,6 +39,11 @@
           <button id="import-yahoo-league-btn" class="secondary">Import Selected League Rules</button>
         </div>
         <div id="yahoo-draft-sync-status" class="sync-status"></div>
+        <div class="readiness-dashboard">
+          <div id="yahoo-readiness-summary" class="readiness-summary"></div>
+          <div id="yahoo-readiness-checks" class="readiness-checks"></div>
+          <div id="yahoo-readiness-actions" class="readiness-actions"></div>
+        </div>
         <div id="yahoo-message" class="meta"></div>
         <pre id="yahoo-output" class="json-output"></pre>
       </section>
@@ -141,6 +147,7 @@
           <button id="rehearsal-sync-btn" class="secondary">Run Rehearsal Sync</button>
         </div>
         <div id="manual-sync-resolution" class="manual-sync-resolution"></div>
+        <div id="sync-event-history" class="sync-event-history"></div>
         <div id="draft-log" class="draft-log"></div>
       </section>
 

@@ -128,7 +128,7 @@ export function recommendPlayers(state, teamId = state.league.userTeamId, limit 
     const rosterPressure = scoreRosterCompletionPressure(state.league, roster, player);
     const marginalTeamValue = Math.max(0, valueOverReplacement) + scoreRosterFit(state.league, roster, player) + rosterPressure;
     const scarcityUrgency = getScarcityUrgency(available, player, picksUntilNext);
-    const marketValueEdge = Math.max(-8, Math.min(12, player.adp - state.currentPick));
+    const marketValueEdge = Math.max(-8, Math.min(12, state.currentPick - player.adp));
     const ceilingAdjustment = player.ceiling;
     const rosterConstructionFit = scoreRosterFit(state.league, roster, player) / 2;
     const opponentBlockingValue = estimateOpponentNeed(state, player, picksUntilNext);
@@ -152,27 +152,43 @@ export function recommendPlayers(state, teamId = state.league.userTeamId, limit 
       (sourceConfidence - 0.7) * 2 +
       strategyPreference.adjustment;
 
+    const scoreBreakdown = {
+      marginalTeamValue: round(marginalTeamValue, 1),
+      valueOverReplacement: round(valueOverReplacement, 1),
+      scarcityUrgency: round(scarcityUrgency, 1),
+      marketValueEdge: round(marketValueEdge, 1),
+      ceilingAdjustment: round(ceilingAdjustment, 1),
+      rosterConstructionFit: round(rosterConstructionFit, 1),
+      opponentBlockingValue: round(opponentBlockingValue, 1),
+      riskPenalty: round(riskPenalty, 1),
+    };
+    const pros = buildPros(state, roster, player, valueOverReplacement, scarcityUrgency);
+    const cons = buildCons(state, roster, player);
+
     return {
       player,
       finalScore: round(finalScore, 1),
       projectedPoints: round(player.projectedPoints, 1),
       projectionExplanation: summarizeProjectionExplanation(player.stats, state.league.scoring),
-      valueOverReplacement: round(valueOverReplacement, 1),
-      marginalTeamValue: round(marginalTeamValue, 1),
-      scarcityUrgency: round(scarcityUrgency, 1),
-      marketValueEdge: round(marketValueEdge, 1),
-      ceilingAdjustment: round(ceilingAdjustment, 1),
-      rosterConstructionFit: round(rosterConstructionFit, 1),
+      scoreBreakdown,
+      valueOverReplacement: scoreBreakdown.valueOverReplacement,
+      marginalTeamValue: scoreBreakdown.marginalTeamValue,
+      scarcityUrgency: scoreBreakdown.scarcityUrgency,
+      marketValueEdge: scoreBreakdown.marketValueEdge,
+      ceilingAdjustment: scoreBreakdown.ceilingAdjustment,
+      rosterConstructionFit: scoreBreakdown.rosterConstructionFit,
       rosterPressure: round(rosterPressure, 1),
-      opponentBlockingValue: round(opponentBlockingValue, 1),
-      riskPenalty: round(riskPenalty, 1),
+      opponentBlockingValue: scoreBreakdown.opponentBlockingValue,
+      riskPenalty: scoreBreakdown.riskPenalty,
       strategyPreference,
       sourceConfidence: round(sourceConfidence, 2),
       sourceTrace: sourceTraceForPlayer(player),
       sourceWarning: sourceWarningForRecommendation(player, valueOverReplacement),
       survivalProbability: round(estimateSurvivalProbability(state, player, picksUntilNext), 2),
-      pros: buildPros(state, roster, player, valueOverReplacement, scarcityUrgency),
-      cons: buildCons(state, roster, player),
+      pros,
+      cons,
+      mainRisk: cons[0],
+      rosterFitNote: buildRosterFitNote(state.league, roster, player),
       whyNow: buildWhyNow(state, player, scarcityUrgency, picksUntilNext),
     };
   });
@@ -301,7 +317,7 @@ function buildPros(state, roster, player, valueOverReplacement, scarcityUrgency)
   if (valueOverReplacement > 15) pros.push("Strong value over league-specific replacement level.");
   if (scoreRosterFit(state.league, roster, player) > 8) pros.push(`Directly fills a ${player.position} starter need.`);
   if (scarcityUrgency > 10) pros.push(`Meaningful ${player.position} tier drop after this range.`);
-  if (player.adp > state.currentPick + 5) pros.push("Market value edge versus ADP.");
+  if (player.adp < state.currentPick - 5) pros.push("Market value edge versus ADP.");
   if (pros.length === 0) pros.push("Good blended value without forcing roster construction.");
   return pros;
 }
@@ -313,6 +329,14 @@ function buildCons(state, roster, player) {
   if (scoreRosterFit(state.league, roster, player) <= 0) cons.push("Does not solve an immediate roster need.");
   if (cons.length === 0) cons.push("Main risk is opportunity cost if another position dries up.");
   return cons;
+}
+
+function buildRosterFitNote(league, roster, player) {
+  const fit = scoreRosterFit(league, roster, player);
+  if (fit >= 10) return `${player.position} fills a current starter need.`;
+  if (fit > 0) return `${player.position} adds useful roster or flex fit.`;
+  if (fit < 0) return `${player.position} is lower priority for current roster construction.`;
+  return `${player.position} is value-driven more than need-driven.`;
 }
 
 function buildWhyNow(state, player, scarcityUrgency, picksUntilNext) {

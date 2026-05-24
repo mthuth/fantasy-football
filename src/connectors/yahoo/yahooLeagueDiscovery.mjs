@@ -12,6 +12,7 @@ export function discoverYahooLeagueOptions(payload) {
       leagueId: leagueIdFromLeagueKey(leagueKey),
       leagueName: cleanString(row.league_name ?? row.leagueName) ?? null,
       season: seasonFromLeagueKey(leagueKey),
+      teamCount: numberOrNull(row.num_teams ?? row.numTeams ?? row.team_count ?? row.teamCount),
       teams: [],
     };
 
@@ -21,12 +22,14 @@ export function discoverYahooLeagueOptions(payload) {
       name: cleanString(row.name ?? row.team_name ?? row.teamName) ?? teamKey ?? "Yahoo team",
       url: cleanString(row.url) ?? null,
       isOwnedByUser: Boolean(row.is_owned_by_current_login ?? row.isOwnedByUser ?? row.is_owned),
+      draftSlot: numberOrNull(row.draft_slot ?? row.draftSlot ?? row.draft_position ?? row.draftPosition),
     };
 
     if (team.teamKey && !league.teams.some((candidate) => candidate.teamKey === team.teamKey)) {
       league.teams.push(team);
     }
     if (!league.leagueName && row.league_name) league.leagueName = cleanString(row.league_name);
+    league.teamCount = league.teamCount ?? numberOrNull(row.num_teams ?? row.numTeams ?? row.team_count ?? row.teamCount);
     leaguesByKey.set(leagueKey, league);
   }
 
@@ -117,4 +120,9 @@ function cleanString(value) {
   if (value === null || value === undefined) return null;
   const cleaned = String(value).trim();
   return cleaned ? cleaned : null;
+}
+
+function numberOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
 }

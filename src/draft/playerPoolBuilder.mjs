@@ -1,4 +1,5 @@
 const CANONICAL_POOL_POSITIONS = new Set(["QB", "RB", "WR", "TE"]);
+const SPECIAL_TEAM_POSITIONS = new Set(["K", "DST"]);
 const TEAM_CODES = [
   "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE",
   "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAX", "KC",
@@ -42,6 +43,7 @@ export function buildPlayerPoolFromCanonical(canonicalPlayers, options = {}) {
     .filter(Boolean)
     .filter((player) => player.team && player.team !== "FA")
     .sort(compareDraftPriority);
+  const specialTeamPlayers = selectSpecialTeamPlayers(canonicalPlayers);
 
   const selectedCounts = {};
   const ranked = [];
@@ -52,8 +54,18 @@ export function buildPlayerPoolFromCanonical(canonicalPlayers, options = {}) {
     ranked.push({ ...player, positionRank: selected + 1 });
   }
   const players = ranked.map((player, index) => buildMockPlayer(player, index + 1));
-  const dstPlayers = TEAM_CODES.map((team, index) => buildDefense(team, players.length + index + 1));
-  const kickerPlayers = TEAM_CODES.map((team, index) => buildKicker(team, players.length + dstPlayers.length + index + 1));
+  const dstPlayers = TEAM_CODES.map((team, index) => {
+    const canonicalDefense = specialTeamPlayers.defensesByTeam.get(team);
+    return canonicalDefense
+      ? buildSpecialTeamPlayer(canonicalDefense, players.length + index + 1, "canonical_dst_with_mock_projection")
+      : buildDefense(team, players.length + index + 1);
+  });
+  const kickerPlayers = TEAM_CODES.map((team, index) => {
+    const canonicalKicker = specialTeamPlayers.kickersByTeam.get(team);
+    return canonicalKicker
+      ? buildSpecialTeamPlayer(canonicalKicker, players.length + dstPlayers.length + index + 1, "canonical_kicker_with_mock_projection")
+      : buildKicker(team, players.length + dstPlayers.length + index + 1);
+  });
 
   return [...players, ...dstPlayers, ...kickerPlayers]
     .sort((a, b) => a.sourceRank - b.sourceRank)
@@ -62,6 +74,58 @@ export function buildPlayerPoolFromCanonical(canonicalPlayers, options = {}) {
       sourceRank: index + 1,
       adp: Number((index + 1 + deterministicJitter(player.playerId, 0, 4)).toFixed(1)),
     }));
+}
+
+function selectSpecialTeamPlayers(canonicalPlayers) {
+  const kickersByTeam = new Map();
+  const defensesByTeam = new Map();
+
+  for (const player of canonicalPlayers) {
+    const normalized = normalizeSpecialTeamPlayer(player);
+    if (!normalized) continue;
+
+    if (normalized.position === "DST") {
+      if (!defensesByTeam.has(normalized.team)) defensesByTeam.set(normalized.team, normalized);
+      continue;
+    }
+
+    const existing = kickersByTeam.get(normalized.team);
+    if (!existing || compareSpecialTeamPriority(normalized, existing) < 0) {
+      kickersByTeam.set(normalized.team, normalized);
+    }
+  }
+
+  return { kickersByTeam, defensesByTeam };
+}
+
+function normalizeSpecialTeamPlayer(player) {
+  const position = (player.positions ?? []).find((candidate) => SPECIAL_TEAM_POSITIONS.has(candidate));
+  if (!position) return null;
+  if (player.active === false) return null;
+  if (!player.fantasy_relevant) return null;
+  const team = normalizeTeamCode(player.team);
+  if (!team || team === "FA") return null;
+
+  return {
+    playerId: player.player_id,
+    name: position === "DST" ? `${team} DST` : player.display_name,
+    position,
+    team,
+    bye: deterministicBye(team),
+    depth: Number.isFinite(player.depth_chart_order) ? player.depth_chart_order : 9,
+    yearsExp: Number.isFinite(player.years_exp) ? player.years_exp : 1,
+    injuryStatus: player.injury_status,
+  };
+}
+
+function compareSpecialTeamPriority(a, b) {
+  return a.depth - b.depth
+    || injuryPenalty(a) - injuryPenalty(b)
+    || a.name.localeCompare(b.name);
+}
+
+function injuryPenalty(player) {
+  return player.injuryStatus ? 5 : 0;
 }
 
 function normalizeCanonicalPlayer(player) {
@@ -172,6 +236,45 @@ function buildKicker(team, rank) {
   };
 }
 
+function buildSpecialTeamPlayer(player, rank, source) {
+  if (player.position === "DST") {
+    return {
+      playerId: player.playerId,
+      name: player.name,
+      position: "DST",
+      team: player.team,
+      bye: player.bye,
+      sourceRank: 140 + deterministicJitter(player.team, 0, 30),
+      adp: 140 + deterministicJitter(player.team, 0, 30),
+      stats: {
+        dstSack: 35 + deterministicJitter(player.team, 0, 18),
+        dstTakeaway: 16 + deterministicJitter(`${player.team}_to`, 0, 10),
+        dstTd: 1 + deterministicJitter(`${player.team}_td`, 0, 3),
+      },
+      risk: 3,
+      ceiling: 5,
+      source,
+    };
+  }
+
+  return {
+    playerId: player.playerId,
+    name: player.name,
+    position: "K",
+    team: player.team,
+    bye: player.bye,
+    sourceRank: 155 + deterministicJitter(`${player.team}_k`, 0, 36),
+    adp: 155 + deterministicJitter(`${player.team}_k`, 0, 36),
+    stats: {
+      fieldGoal: 24 + deterministicJitter(player.team, 0, 10),
+      extraPoint: 32 + deterministicJitter(`${player.team}_xp`, 0, 15),
+    },
+    risk: 3,
+    ceiling: 4,
+    source,
+  };
+}
+
 function projectionFor(position, rank, depth) {
   const depthPenalty = Math.max(0, depth - 1);
   const rankPenalty = Math.max(0, rank - 1);
@@ -229,6 +332,12 @@ function riskFor(player) {
 function deterministicBye(team) {
   if (!team) return 10;
   return 5 + (hashCode(team) % 10);
+}
+
+function normalizeTeamCode(team) {
+  if (!team) return null;
+  const normalized = String(team).toUpperCase();
+  return normalized === "LVR" ? "LV" : normalized;
 }
 
 function deterministicJitter(seed, min, max) {

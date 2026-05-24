@@ -10,7 +10,14 @@ import {
 } from "../src/draft/simulator.mjs";
 
 const strategies = getSimulationStrategies();
-assert.deepEqual(strategies.map((strategy) => strategy.id), ["balanced", "upside", "safe", "scarcity"]);
+assert.deepEqual(strategies.map((strategy) => strategy.id), [
+  "balanced",
+  "hero_rb",
+  "zero_rb",
+  "robust_rb",
+  "elite_qb",
+  "best_player_available",
+]);
 assert.deepEqual(getOpponentProfiles().map((profile) => profile.id), ["agent", "adp", "rb_heavy", "wr_heavy", "qb_early"]);
 
 const balanced = runDraftSimulation({
@@ -34,13 +41,16 @@ const batch = runSimulationBatch({
   league: mockLeague,
   teams: mockTeams,
   players: mockPlayers,
-  strategyIds: ["balanced", "safe", "upside"],
+  strategyIds: ["balanced", "hero_rb", "zero_rb"],
 });
 
 assert.equal(batch.length, 3);
-assert.deepEqual(batch.map((simulation) => simulation.strategy.id), ["balanced", "safe", "upside"]);
+assert.deepEqual(batch.map((simulation) => simulation.strategy.id), ["balanced", "hero_rb", "zero_rb"]);
 assert.equal(new Set(batch.map((simulation) => simulation.report.simulationRunId)).size, 3, "batch reports should have distinct run ids");
 assert.ok(batch.every((simulation) => simulation.summary.picksMade === mockLeague.teams * mockLeague.draft.rounds));
+assert.ok(batch.every((simulation) =>
+  simulation.report.replayTurns.every((turn) => turn.selected.strategyPreference.profile === simulation.strategy.id)
+), "simulated strategy should flow through recommendation scoring metadata");
 
 const scenario = buildSimulationScenario(mockLeague, {
   teams: 10,

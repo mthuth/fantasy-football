@@ -4,9 +4,11 @@ import { loadYahooLeagueSettingsProfile, saveYahooLeagueSettingsProfile } from "
 import { loadLocalEnv } from "../src/config/loadLocalEnv.mjs";
 import { YahooReadOnlyConnector } from "../src/connectors/yahoo/YahooReadOnlyConnector.mjs";
 import { loadYahooTokens, saveYahooTokens } from "../src/connectors/yahoo/YahooTokenStore.mjs";
+import { assessYahooLiveDraftReadiness } from "../src/connectors/yahoo/yahooReadiness.mjs";
 import { normalizeYahooDraftResults } from "../src/connectors/yahoo/yahooDraftResultsNormalizer.mjs";
 import { discoverYahooLeagueOptions } from "../src/connectors/yahoo/yahooLeagueDiscovery.mjs";
 import { normalizeYahooLeagueTeams, normalizeYahooTeamRoster } from "../src/connectors/yahoo/yahooRosterNormalizer.mjs";
+import { auditPlayerPoolQuality } from "../src/data/playerDataQuality.mjs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import path from "node:path";
@@ -199,10 +201,22 @@ async function loadSimulationBaseLeague(useSavedLeague) {
   return buildLeagueFromYahooSettings(mockLeague, profile.yahooSettings, profile.selectedLeague ?? {});
 }
 
+async function loadYahooLeagueForDraftResults(leagueKey) {
+  const profile = await loadYahooLeagueSettingsProfile();
+  if (!profile.exists || !profile.yahooSettings) return null;
+  const league = buildLeagueFromYahooSettings(mockLeague, profile.yahooSettings, profile.selectedLeague ?? {});
+  return league.leagueKey === leagueKey ? league : null;
+}
+
 async function handleYahooApi(request, response, url) {
   try {
     if (url.pathname === "/api/yahoo/status" && request.method === "GET") {
       sendJson(response, 200, await getYahooStatus());
+      return;
+    }
+
+    if (url.pathname === "/api/yahoo/readiness" && request.method === "GET") {
+      sendJson(response, 200, await getYahooReadiness(url));
       return;
     }
 
@@ -260,13 +274,15 @@ async function handleYahooApi(request, response, url) {
       const externalIds = await loadExternalPlayerIds();
       const players = await loadCanonicalPlayers();
       const playerPool = await loadServerPlayerPool(url.searchParams.get("playerPool") === "generated");
+      const league = await loadYahooLeagueForDraftResults(leagueKey);
       sendJson(response, 200, {
         ...normalizeYahooDraftResults(raw, {
           leagueKey,
           externalIds,
           players,
           playerPool,
-          teamCount: mockLeague.teams,
+          teamCount: league?.teams ?? mockLeague.teams,
+          teamKeyToTeamId: league?.teamKeyToTeamId ?? {},
         }),
         raw,
       });
@@ -323,6 +339,58 @@ async function getYahooStatus() {
     config,
     token: saved.summary ?? { connected: false, hasRefreshToken: false, expiresAt: null, scope: null },
     readOnly: true,
+  };
+}
+
+async function getYahooReadiness(url) {
+  const status = await getYahooStatus();
+  const profile = await loadYahooLeagueSettingsProfile();
+  const playerPool = await loadServerPlayerPool(url.searchParams.get("playerPool") === "generated");
+  const externalIds = await loadExternalPlayerIds();
+  const playerAudit = auditPlayerPoolQuality(playerPool, { externalIds });
+  const draftSyncStatus = url.searchParams.get("draftSyncStatus") ?? null;
+  const selectedLeague = normalizeReadinessSelectedLeague(profile.selectedLeague, {
+    leagueKey: url.searchParams.get("leagueKey"),
+    teamKey: url.searchParams.get("teamKey"),
+  });
+  const readiness = assessYahooLiveDraftReadiness(status, {
+    selectedLeague,
+    draftResults: draftSyncStatus ? { syncStatus: draftSyncStatus } : null,
+    playerAudit,
+  });
+
+  return {
+    checkedAt: new Date().toISOString(),
+    readiness,
+    yahoo: status,
+    selectedLeague,
+    draftResults: {
+      syncStatus: draftSyncStatus,
+    },
+    playerAudit: {
+      playerCount: playerAudit.playerCount,
+      yahooMappedCount: playerAudit.yahooMappedCount,
+      missingYahooIdCount: playerAudit.missingYahooIdCount,
+      missingRequiredPositions: playerAudit.missingRequiredPositions,
+      status: playerAudit.status,
+    },
+  };
+}
+
+function normalizeReadinessSelectedLeague(savedSelectedLeague, overrides = {}) {
+  const selectedLeague = savedSelectedLeague ?? {};
+  const leagueKey = overrides.leagueKey ?? selectedLeague.leagueKey ?? null;
+  const teamKey = overrides.teamKey
+    ?? selectedLeague.teamKey
+    ?? selectedLeague.selectedTeamKey
+    ?? selectedLeague.primaryTeam?.teamKey
+    ?? null;
+
+  if (!leagueKey && !teamKey) return null;
+  return {
+    ...selectedLeague,
+    leagueKey,
+    teamKey,
   };
 }
 

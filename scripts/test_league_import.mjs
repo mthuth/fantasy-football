@@ -52,6 +52,36 @@ assert.equal(yahooSnakeCaseLeague.leagueId, "77777");
 assert.equal(yahooSnakeCaseLeague.name, "Snake Case League");
 assert.equal(yahooSnakeCaseLeague.importSource.selectedTeamName, "Matt's Team");
 
+const yahooDraftOrderLeague = buildLeagueFromYahooSettings(mockLeague, {
+  league: {
+    leagueKey: "461.l.88888",
+    leagueId: "88888",
+    name: "Draft Order League",
+    num_teams: 4,
+    settings: payload.league.settings,
+  },
+}, {
+  selectedTeamKey: "461.l.88888.t.7",
+  selectedTeamName: "Matt's Team",
+  selectedLeague: {
+    leagueKey: "461.l.88888",
+    teamCount: 4,
+    teams: [
+      { teamKey: "461.l.88888.t.9", teamId: "9", name: "First Slot", draftSlot: 1 },
+      { teamKey: "461.l.88888.t.7", teamId: "7", name: "Matt's Team", draftSlot: 2 },
+      { teamKey: "461.l.88888.t.1", teamId: "1", name: "Third Slot", draftSlot: 3 },
+      { teamKey: "461.l.88888.t.4", teamId: "4", name: "Fourth Slot", draftSlot: 4 },
+    ],
+  },
+});
+
+assert.equal(yahooDraftOrderLeague.teams, 4);
+assert.equal(yahooDraftOrderLeague.draft.userDraftSlot, 2);
+assert.equal(yahooDraftOrderLeague.userTeamId, "team_2");
+assert.equal(yahooDraftOrderLeague.teamKeyToTeamId["461.l.88888.t.7"], "team_2");
+assert.equal(yahooDraftOrderLeague.teamKeyToTeamId["461.l.88888.t.1"], "team_3");
+assert.equal(yahooDraftOrderLeague.yahooDraftOrderTeams[1].name, "Matt's Team");
+
 console.log(JSON.stringify({
   status: "passed",
   importedLeague: summary,

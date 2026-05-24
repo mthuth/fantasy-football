@@ -28,10 +28,28 @@ const ready = assessYahooLiveDraftReadiness({
 assert.equal(ready.readyForLiveDraft, true);
 assert.deepEqual(ready.blockers, []);
 
+const readyWithSavedTeamKey = assessYahooLiveDraftReadiness({
+  configured: true,
+  token: { connected: true, hasRefreshToken: true },
+  readOnly: true,
+}, {
+  selectedLeague: { leagueKey: "461.l.123", selectedTeamKey: "461.l.123.t.1" },
+  draftResults: { syncStatus: "synced" },
+  playerAudit: {
+    playerCount: 100,
+    yahooMappedCount: 95,
+    missingRequiredPositions: [],
+  },
+});
+
+assert.equal(readyWithSavedTeamKey.readyForLiveDraft, true);
+assert.deepEqual(readyWithSavedTeamKey.blockers, []);
+
 console.log(JSON.stringify({
   status: "passed",
   tested: [
     "Yahoo readiness blockers",
     "Yahoo readiness ready state",
+    "Yahoo readiness saved selectedTeamKey state",
   ],
 }, null, 2));

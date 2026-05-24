@@ -26,6 +26,10 @@ const result = applyYahooDraftEventsToState(state, [
 assert.equal(result.applied, 1);
 assert.equal(result.manualRequired.length, 1);
 assert.equal(result.manualRequired[0].manualReason, "unmatched_yahoo_player");
+assert.equal(result.events.length, 2);
+assert.equal(result.events[0].status, "applied");
+assert.equal(result.events[1].status, "manual_required");
+assert.equal(result.events[1].reason, "unmatched_yahoo_player");
 assert.equal(state.currentPick, 2);
 assert.equal(state.drafted.length, 1);
 assert.equal(state.drafted[0].source, "yahoo_draftresults");
@@ -40,6 +44,8 @@ const replay = applyYahooDraftEventsToState(state, [
 
 assert.equal(replay.applied, 0);
 assert.equal(replay.skippedAlreadyDrafted, 1);
+assert.equal(replay.events[0].status, "skipped");
+assert.equal(replay.events[0].reason, "already_applied");
 
 const conflict = applyYahooDraftEventsToState(state, [
   {
@@ -51,8 +57,10 @@ const conflict = applyYahooDraftEventsToState(state, [
 
 assert.equal(conflict.manualRequired.length, 1);
 assert.equal(conflict.manualRequired[0].manualReason, "manual_pick_conflict");
+assert.equal(conflict.events[0].status, "manual_required");
+assert.equal(conflict.events[0].reason, "manual_pick_conflict");
 
 console.log(JSON.stringify({
   status: "passed",
-  tested: ["apply matched Yahoo draft events", "stop on manual correction", "skip already applied picks", "manual pick conflict detection"],
+  tested: ["apply matched Yahoo draft events", "stop on manual correction", "skip already applied picks", "manual pick conflict detection", "per-event sync outcomes"],
 }, null, 2));

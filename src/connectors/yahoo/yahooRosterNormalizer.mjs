@@ -4,6 +4,7 @@ export function normalizeYahooLeagueTeams(payload) {
     teamId: cleanString(row.team_id ?? row.teamId) ?? teamIdFromTeamKey(row.team_key ?? row.teamKey),
     name: cleanString(row.name ?? row.team_name ?? row.teamName) ?? "Yahoo team",
     manager: cleanString(row.manager_nickname ?? row.managerNickname ?? row.nickname) ?? null,
+    draftSlot: numberOrNull(row.draft_slot ?? row.draftSlot ?? row.draft_position ?? row.draftPosition),
   })).filter((team) => team.teamKey);
 }
 
@@ -125,4 +126,9 @@ function cleanString(value) {
   if (value === null || value === undefined) return null;
   const cleaned = String(value).trim();
   return cleaned ? cleaned : null;
+}
+
+function numberOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
 }

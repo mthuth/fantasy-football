@@ -28,6 +28,14 @@ try {
   assert.equal(yahooStatus.body.readOnly, true);
   assert.equal(typeof yahooStatus.body.configured, "boolean");
 
+  const yahooReadiness = await fetchJson(`${baseUrl}/api/yahoo/readiness?draftSyncStatus=synced&leagueKey=test.l.1&teamKey=test.l.1.t.1`);
+  assert.equal(yahooReadiness.status, 200);
+  assert.equal(yahooReadiness.body.yahoo.readOnly, true);
+  assert.equal(typeof yahooReadiness.body.readiness.readyForLiveDraft, "boolean");
+  assert.ok(Array.isArray(yahooReadiness.body.readiness.checks));
+  assert.equal(yahooReadiness.body.selectedLeague.leagueKey, "test.l.1");
+  assert.equal(yahooReadiness.body.selectedLeague.teamKey, "test.l.1.t.1");
+
   const leagueProfile = await fetchJson(`${baseUrl}/api/league-profile`);
   assert.equal(leagueProfile.status, 200);
   assert.equal(typeof leagueProfile.body.exists, "boolean");
@@ -88,6 +96,7 @@ try {
       "static dashboard route",
       "not found route",
       "Yahoo status route",
+      "Yahoo readiness route",
       "league profile get and put",
       "simulation method guard",
       "simulation invalid JSON guard",

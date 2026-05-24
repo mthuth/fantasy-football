@@ -9,45 +9,26 @@ import {
 } from "./draftEngine.mjs";
 import { buildSimulationReport } from "./reporting.mjs";
 
-const DEFAULT_STRATEGY_IDS = ["balanced", "safe", "upside", "scarcity"];
+const DEFAULT_STRATEGY_IDS = ["balanced", "hero_rb", "zero_rb", "robust_rb", "elite_qb", "best_player_available"];
 
 const STRATEGIES = {
   balanced: {
     label: "Balanced",
-    pickRecommendation: (recommendations) => recommendations[0],
   },
-  upside: {
-    label: "Upside",
-    pickRecommendation: (recommendations) => {
-      const topTier = recommendations.filter((option) => option.finalScore >= recommendations[0].finalScore - 4);
-      return topTier.slice().sort((a, b) =>
-        b.ceilingAdjustment - a.ceilingAdjustment ||
-        b.scarcityUrgency - a.scarcityUrgency ||
-        b.finalScore - a.finalScore
-      )[0];
-    },
+  hero_rb: {
+    label: "Hero RB",
   },
-  safe: {
-    label: "Safe Floor",
-    pickRecommendation: (recommendations) => {
-      const topTier = recommendations.filter((option) => option.finalScore >= recommendations[0].finalScore - 4);
-      return topTier.slice().sort((a, b) =>
-        a.riskPenalty - b.riskPenalty ||
-        b.sourceConfidence - a.sourceConfidence ||
-        b.finalScore - a.finalScore
-      )[0];
-    },
+  zero_rb: {
+    label: "Zero RB",
   },
-  scarcity: {
-    label: "Scarcity",
-    pickRecommendation: (recommendations) => {
-      const topTier = recommendations.filter((option) => option.finalScore >= recommendations[0].finalScore - 5);
-      return topTier.slice().sort((a, b) =>
-        b.scarcityUrgency - a.scarcityUrgency ||
-        b.valueOverReplacement - a.valueOverReplacement ||
-        b.finalScore - a.finalScore
-      )[0];
-    },
+  robust_rb: {
+    label: "Robust RB",
+  },
+  elite_qb: {
+    label: "Elite QB",
+  },
+  best_player_available: {
+    label: "Best Player Available",
   },
 };
 
@@ -154,10 +135,14 @@ export function runDraftSimulation({
     runUntilUserTurn(state, opponentProfileId);
     if (!isUserTurn(state)) break;
 
-    const recommendations = recommendPlayers(state, league.userTeamId, 5);
+    const strategyPreferences = {
+      ...(league.strategyPreferences ?? {}),
+      strategyProfile: strategyId,
+    };
+    const recommendations = recommendPlayers(state, league.userTeamId, 5, { strategyPreferences });
     if (recommendations.length === 0) break;
 
-    const selected = strategy.pickRecommendation(recommendations);
+    const selected = recommendations[0];
     userRecommendations.push({
       pickNumber: state.currentPick,
       strategy: strategyId,
@@ -192,6 +177,10 @@ export function runDraftSimulation({
     strategy: {
       id: strategyId,
       label: strategy.label,
+      preferences: {
+        ...(league.strategyPreferences ?? {}),
+        strategyProfile: strategyId,
+      },
     },
     opponentProfile: {
       id: opponentProfileId,
@@ -205,6 +194,10 @@ export function runDraftSimulation({
     strategy: {
       id: strategyId,
       label: strategy.label,
+      preferences: {
+        ...(league.strategyPreferences ?? {}),
+        strategyProfile: strategyId,
+      },
     },
     opponentProfile: {
       id: opponentProfileId,
@@ -261,12 +254,18 @@ function toRecommendationSnapshot(option) {
     position: option.player.position,
     team: option.player.team,
     score: option.finalScore,
+    scoreBreakdown: option.scoreBreakdown,
+    strategyPreference: option.strategyPreference,
     projectedPoints: option.projectedPoints,
     valueOverReplacement: option.valueOverReplacement,
     scarcityUrgency: option.scarcityUrgency,
     survivalProbability: option.survivalProbability,
     riskPenalty: option.riskPenalty,
     sourceConfidence: option.sourceConfidence,
+    whyNow: option.whyNow,
+    mainRisk: option.mainRisk,
+    rosterFitNote: option.rosterFitNote,
+    sourceTrace: option.sourceTrace,
     pros: option.pros,
     cons: option.cons,
   };

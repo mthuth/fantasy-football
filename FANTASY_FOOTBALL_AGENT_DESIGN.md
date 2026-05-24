@@ -62,9 +62,43 @@ The agent should be designed as an approval-first system. It can do the analysis
 
 ### Approval Channels
 
+The decided approval and alert channels are dashboard, email, and Slack. The dashboard is the primary control surface, while email and Slack provide timely review links and notifications when the user is away from the dashboard.
+
+#### Dashboard
+
+The dashboard should be the canonical approval surface.
+
+Why:
+- It already has the full league, roster, recommendation, and audit context.
+- It can show richer explanations than a notification channel.
+- It gives the safest place to confirm sensitive Yahoo actions.
+
+Recommended dashboard actions:
+- `Approve`
+- `Reject`
+- `Modify`
+- `Explain`
+- `Snooze`
+- `Open audit trail`
+
+#### Email
+
+Email should be supported for approval requests and alerts.
+
+Why:
+- Reliable fallback when Slack is unavailable.
+- Good for slower decisions, post-draft summaries, waiver plans, and audit-friendly approval records.
+- Works well with secure dashboard approval links.
+
+Recommended email actions:
+- Send the recommendation summary.
+- Include a secure approval link to the dashboard.
+- Include deadline, league, and action risk details.
+- Avoid approving sensitive actions by bare email reply.
+
 #### Slack
 
-Slack should be the first approval channel.
+Slack should be supported for quick approvals and urgent alerts.
 
 Why:
 - Strong bot and app ecosystem.
@@ -83,7 +117,7 @@ Recommended Slack actions:
 
 #### Microsoft Teams
 
-Teams should be the second approval channel.
+Teams can be considered later, but it is not part of the decided first approval and alert channel set.
 
 Why:
 - Good fit if the user already lives in Microsoft 365.
@@ -2572,13 +2606,16 @@ Mitigation:
 
 ## Open Questions
 
-1. Which fantasy platform should we target first?
-2. Is this for redraft, keeper, dynasty, best ball, or auction?
-3. What scoring format matters first?
-4. Should the first version be a local tool, web app, Slack/Discord bot, or mobile-friendly dashboard?
-5. Should it only advise, or should it eventually submit moves?
-6. Do you want it built for one team first or multiple leagues?
-7. Do you care more about weekly lineup optimization, waivers, draft, or trades first?
+The foundational MVP scope is now decided in `DECISIONS.md` and `REQUIREMENTS.md`: Yahoo, local dashboard, redraft half-PPR snake draft, recommendation-only draft copilot, mock/static projections first, and multiple Yahoo leagues from day one.
+
+Remaining strategy decisions before real-season usage:
+
+1. Should low-risk actions ever become auto-approved, or should every paid Yahoo league action require explicit approval?
+2. Should every production action require a successful dry run first?
+3. Which draft strategy profile should be the default: balanced, hero RB, zero RB, robust RB, elite QB, or best player available?
+4. Should the default risk style be safe floor, balanced, or upside-heavy?
+5. Should waiver recommendations include FAAB dollar ranges?
+6. Should trade scoring optimize weekly wins, playoff odds, long-term roster value, or a blended score?
 
 ## Recommended First Implementation Path
 

@@ -1,0 +1,3 @@
+playerId,source,projectedPoints,sourceRank,adp,risk,ceiling,confidence,updatedAt
+p_001,my_projection_source,342.5,1,1.2,3,14.5,0.85,2026-05-24T00:00:00.000Z
+p_002,my_projection_source,327.8,2,2.1,3,14.2,0.85,2026-05-24T00:00:00.000Z
