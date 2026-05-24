@@ -9,6 +9,7 @@
     "mock:draft:generated": "node scripts/build_mock_player_pool.mjs && PLAYER_POOL=generated node scripts/run_mock_draft.mjs",
     "simulator:batch": "node scripts/run_simulator_batch.mjs",
     "simulator:batch:generated": "node scripts/build_mock_player_pool.mjs && PLAYER_POOL=generated node scripts/run_simulator_batch.mjs",
+    "strategy:tune": "node scripts/build_mock_player_pool.mjs && node scripts/tune_strategy_weights.mjs",
     "test:manual-controls": "node scripts/test_manual_controls.mjs",
     "test:dashboard-routes": "node scripts/test_dashboard_routes.mjs",
     "test:dashboard-ui": "node scripts/test_dashboard_ui_contract.mjs",
@@ -27,6 +28,7 @@
     "test:projection-import-sample": "node scripts/test_projection_import_sample.mjs",
     "test:projection-import-sharp": "node scripts/test_sharp_football_projection_import.mjs",
     "test:strategy-preferences": "node scripts/test_strategy_preferences.mjs",
+    "test:strategy-tuning": "node scripts/test_strategy_tuning.mjs",
     "test:rehearsal-draft-feed": "node scripts/test_rehearsal_draft_feed.mjs",
     "test:yahoo-readiness": "node scripts/test_yahoo_readiness.mjs",
     "projection:import": "node scripts/import_projection_source.mjs",
@@ -44,7 +46,7 @@
     "test:yahoo-normalizer": "node scripts/test_yahoo_league_normalizer.mjs",
     "test:league-import": "node scripts/test_league_import.mjs",
     "test:league-profile-store": "node scripts/test_league_profile_store.mjs",
-    "test": "node scripts/build_mock_player_pool.mjs && node scripts/test_mock_draft_regression.mjs && node scripts/test_manual_controls.mjs && node scripts/test_dashboard_routes.mjs && node scripts/test_dashboard_ui_contract.mjs && node scripts/test_dashboard_full_draft_flow.mjs && node scripts/test_server_port_fallback.mjs && node scripts/test_scoring_engine.mjs && node scripts/test_recommendation_contract.mjs && node scripts/test_simulator.mjs && node scripts/test_simulation_report_contract.mjs && node scripts/test_reports.mjs && node scripts/test_league_rosters.mjs && node scripts/test_player_data_quality.mjs && node scripts/test_player_pool_builder.mjs && node scripts/test_database_integrity.mjs && node scripts/test_projection_source.mjs && node scripts/test_projection_import_sample.mjs && node scripts/test_sharp_football_projection_import.mjs && node scripts/test_strategy_preferences.mjs && node scripts/test_rehearsal_draft_feed.mjs && node scripts/test_yahoo_readiness.mjs && node scripts/test_waiver_trade_foundations.mjs && node scripts/test_approval_guardrails.mjs && node scripts/test_yahoo_connector.mjs && node scripts/test_yahoo_league_discovery.mjs && node scripts/test_yahoo_draft_results_normalizer.mjs && node scripts/test_yahoo_draft_results_sync.mjs && node scripts/test_yahoo_draft_sync.mjs && node scripts/test_yahoo_token_store.mjs && node scripts/test_yahoo_league_normalizer.mjs && node scripts/test_league_import.mjs && node scripts/test_league_profile_store.mjs",
+    "test": "node scripts/build_mock_player_pool.mjs && node scripts/test_mock_draft_regression.mjs && node scripts/test_manual_controls.mjs && node scripts/test_dashboard_routes.mjs && node scripts/test_dashboard_ui_contract.mjs && node scripts/test_dashboard_full_draft_flow.mjs && node scripts/test_server_port_fallback.mjs && node scripts/test_scoring_engine.mjs && node scripts/test_recommendation_contract.mjs && node scripts/test_simulator.mjs && node scripts/test_simulation_report_contract.mjs && node scripts/test_reports.mjs && node scripts/test_league_rosters.mjs && node scripts/test_player_data_quality.mjs && node scripts/test_player_pool_builder.mjs && node scripts/test_database_integrity.mjs && node scripts/test_projection_source.mjs && node scripts/test_projection_import_sample.mjs && node scripts/test_sharp_football_projection_import.mjs && node scripts/test_strategy_preferences.mjs && node scripts/test_strategy_tuning.mjs && node scripts/test_rehearsal_draft_feed.mjs && node scripts/test_yahoo_readiness.mjs && node scripts/test_waiver_trade_foundations.mjs && node scripts/test_approval_guardrails.mjs && node scripts/test_yahoo_connector.mjs && node scripts/test_yahoo_league_discovery.mjs && node scripts/test_yahoo_draft_results_normalizer.mjs && node scripts/test_yahoo_draft_results_sync.mjs && node scripts/test_yahoo_draft_sync.mjs && node scripts/test_yahoo_token_store.mjs && node scripts/test_yahoo_league_normalizer.mjs && node scripts/test_league_import.mjs && node scripts/test_league_profile_store.mjs",
     "start": "node scripts/build_mock_player_pool.mjs && node scripts/serve_mock_draft.mjs"
   }
 }
