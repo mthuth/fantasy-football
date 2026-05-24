@@ -17,6 +17,14 @@ The mock draft engine is working from the command line and the browser dashboard
 
 ## Issues and Recommendations
 
+## Resolution Status
+
+- Fixed: server startup now falls back to the next available local port and binds to `127.0.0.1` by default.
+- Fixed: disabled draft buttons now use muted styling and a `not-allowed` cursor.
+- Fixed: `mock:draft` fails when required roster slots are missing.
+- Fixed: generated ADP/ranking sanity is covered so kickers, defenses, and non-elite QBs do not leak into the early board.
+- Fixed: added `scripts/test_dashboard_full_draft_flow.mjs` to cover the dashboard draft flow from initial load semantics through user recommendations, full draft completion, final roster validation, post-draft review, and reset.
+
 ### 1. Server startup crashes when the default port is occupied
 
 File: `scripts/serve_mock_draft.mjs`
@@ -85,4 +93,3 @@ The latest successful CLI run produced:
 - `picksMade: 80`
 - `recommendationTurns: 10`
 - final user picks included WR, RB, QB, DST, TE, and K
-

@@ -12,6 +12,7 @@
     "test:manual-controls": "node scripts/test_manual_controls.mjs",
     "test:dashboard-routes": "node scripts/test_dashboard_routes.mjs",
     "test:dashboard-ui": "node scripts/test_dashboard_ui_contract.mjs",
+    "test:dashboard-flow": "node scripts/test_dashboard_full_draft_flow.mjs",
     "test:server-port-fallback": "node scripts/test_server_port_fallback.mjs",
     "test:simulator": "node scripts/test_simulator.mjs",
     "test:reports": "node scripts/test_reports.mjs",
@@ -24,7 +25,7 @@
     "test:yahoo-normalizer": "node scripts/test_yahoo_league_normalizer.mjs",
     "test:league-import": "node scripts/test_league_import.mjs",
     "test:league-profile-store": "node scripts/test_league_profile_store.mjs",
-    "test": "node scripts/build_mock_player_pool.mjs && node scripts/test_mock_draft_regression.mjs && node scripts/test_manual_controls.mjs && node scripts/test_dashboard_routes.mjs && node scripts/test_dashboard_ui_contract.mjs && node scripts/test_server_port_fallback.mjs && node scripts/test_simulator.mjs && node scripts/test_reports.mjs && node scripts/test_yahoo_connector.mjs && node scripts/test_yahoo_league_discovery.mjs && node scripts/test_yahoo_draft_results_normalizer.mjs && node scripts/test_yahoo_draft_results_sync.mjs && node scripts/test_yahoo_draft_sync.mjs && node scripts/test_yahoo_token_store.mjs && node scripts/test_yahoo_league_normalizer.mjs && node scripts/test_league_import.mjs && node scripts/test_league_profile_store.mjs",
+    "test": "node scripts/build_mock_player_pool.mjs && node scripts/test_mock_draft_regression.mjs && node scripts/test_manual_controls.mjs && node scripts/test_dashboard_routes.mjs && node scripts/test_dashboard_ui_contract.mjs && node scripts/test_dashboard_full_draft_flow.mjs && node scripts/test_server_port_fallback.mjs && node scripts/test_simulator.mjs && node scripts/test_reports.mjs && node scripts/test_yahoo_connector.mjs && node scripts/test_yahoo_league_discovery.mjs && node scripts/test_yahoo_draft_results_normalizer.mjs && node scripts/test_yahoo_draft_results_sync.mjs && node scripts/test_yahoo_draft_sync.mjs && node scripts/test_yahoo_token_store.mjs && node scripts/test_yahoo_league_normalizer.mjs && node scripts/test_league_import.mjs && node scripts/test_league_profile_store.mjs",
     "start": "node scripts/build_mock_player_pool.mjs && node scripts/serve_mock_draft.mjs"
   }
 }

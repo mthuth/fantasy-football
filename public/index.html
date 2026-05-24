@@ -28,12 +28,15 @@
           <button id="load-yahoo-teams-btn" class="secondary">Load Yahoo Teams</button>
           <button id="discover-yahoo-leagues-btn" class="secondary">Discover Leagues</button>
           <button id="load-yahoo-draft-results-btn" class="secondary">Load Draft Results</button>
+          <button id="start-yahoo-draft-polling-btn" class="secondary">Start Polling</button>
+          <button id="stop-yahoo-draft-polling-btn" class="secondary">Stop Polling</button>
         </div>
         <div class="yahoo-league-picker">
           <label for="yahoo-league-select">Connected Yahoo league</label>
           <select id="yahoo-league-select"></select>
           <button id="import-yahoo-league-btn" class="secondary">Import Selected League Rules</button>
         </div>
+        <div id="yahoo-draft-sync-status" class="sync-status"></div>
         <div id="yahoo-message" class="meta"></div>
         <pre id="yahoo-output" class="json-output"></pre>
       </section>
@@ -93,6 +96,14 @@
       <section class="panel roster-panel">
         <h2>My Roster</h2>
         <div id="roster" class="roster"></div>
+      </section>
+
+      <section class="panel league-roster-panel">
+        <div class="panel-header">
+          <h2>League Rosters</h2>
+          <div id="league-rosters-chip" class="chip"></div>
+        </div>
+        <div id="league-roster-view" class="league-roster-view"></div>
       </section>
 
       <section class="panel available-panel">

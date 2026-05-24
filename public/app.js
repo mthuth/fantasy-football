@@ -18,6 +18,7 @@ import {
 } from "../src/draft/draftEngine.mjs";
 import { buildPostDraftReview } from "../src/draft/rosterReview.mjs";
 import { applyYahooDraftEventsToState } from "../src/draft/yahooDraftSync.mjs";
+import { buildLeagueRosterSnapshot } from "../src/draft/leagueRosters.mjs";
 
 const params = new URLSearchParams(window.location.search);
 let playerPoolMode = params.get("pool") === "generated" ? "generated" : "static";
@@ -31,6 +32,15 @@ let reportIndex = [];
 let selectedReport = null;
 let yahooLeagueOptions = [];
 let latestBatch = null;
+let activeDraftKey = draftKeyForLeague(activeLeague);
+const draftSessions = new Map();
+let latestSyncStatus = {
+  status: "manual_required",
+  highestPick: 0,
+  updatedAt: null,
+  message: "Manual mock mode",
+};
+let yahooDraftPollingTimer = null;
 
 const els = {
   status: document.querySelector("#pick-status"),
@@ -41,6 +51,7 @@ const els = {
   recommendations: document.querySelector("#recommendations"),
   roster: document.querySelector("#roster"),
   available: document.querySelector("#available"),
+  leagueRostersChip: document.querySelector("#league-rosters-chip"),
   review: document.querySelector("#review"),
   reports: document.querySelector("#reports"),
   runSimulations: document.querySelector("#run-simulations-btn"),
@@ -77,8 +88,12 @@ const els = {
   loadYahooTeams: document.querySelector("#load-yahoo-teams-btn"),
   discoverYahooLeagues: document.querySelector("#discover-yahoo-leagues-btn"),
   loadYahooDraftResults: document.querySelector("#load-yahoo-draft-results-btn"),
+  startYahooDraftPolling: document.querySelector("#start-yahoo-draft-polling-btn"),
+  stopYahooDraftPolling: document.querySelector("#stop-yahoo-draft-polling-btn"),
+  yahooDraftSyncStatus: document.querySelector("#yahoo-draft-sync-status"),
   yahooLeagueSelect: document.querySelector("#yahoo-league-select"),
   importYahooLeague: document.querySelector("#import-yahoo-league-btn"),
+  leagueRosterView: document.querySelector("#league-roster-view"),
 };
 
 els.advance.addEventListener("click", () => {
@@ -188,6 +203,14 @@ els.loadYahooDraftResults.addEventListener("click", async () => {
   await loadSelectedYahooDraftResults();
 });
 
+els.startYahooDraftPolling.addEventListener("click", async () => {
+  await startYahooDraftPolling();
+});
+
+els.stopYahooDraftPolling.addEventListener("click", () => {
+  stopYahooDraftPolling("Yahoo draft polling stopped.");
+});
+
 els.importYahooLeague.addEventListener("click", async () => {
   await importSelectedYahooLeagueSettings();
 });
@@ -201,6 +224,7 @@ await loadSimulationReports();
 syncScenarioControlsToLeague();
 
 function render() {
+  saveActiveDraftSession();
   const currentTeam = getTeamForPick(state.league, state.currentPick);
   els.status.textContent = isDraftComplete()
     ? "Draft complete"
@@ -218,8 +242,10 @@ function render() {
   renderLeagueSummary();
   renderRecommendations();
   renderRoster();
+  renderLeagueRosterView();
   renderAvailable();
   renderReview();
+  renderYahooDraftSyncStatus();
   renderSimulationComparison();
   renderReports();
 }
@@ -306,6 +332,39 @@ function renderRoster() {
       <span class="meta">${player.position} - ${player.team}</span>
     </div>
   `).join("") || `<div class="meta">No players drafted yet.</div>`;
+}
+
+function renderLeagueRosterView() {
+  if (!els.leagueRosterView) return;
+  const snapshot = buildLeagueRosterSnapshot(state);
+  els.leagueRostersChip.textContent = `${snapshot.teams.length} teams / pick ${snapshot.currentPick}`;
+  els.leagueRosterView.innerHTML = snapshot.teams.map((team) => {
+    const needed = Object.entries(team.openSlots)
+      .filter(([, count]) => count > 0)
+      .map(([slot, count]) => `${count} ${slot}`);
+    return `
+      <article class="team-roster-card ${team.teamId === activeLeague.userTeamId ? "mine" : ""}">
+        <div class="team-roster-title">
+          <strong>${escapeHtml(team.name)}</strong>
+          <span class="meta">${team.teamKey ? escapeHtml(team.teamKey) : `Slot ${team.draftSlot}`} / ${team.pickCount} picks</span>
+        </div>
+        <div class="slot-list compact-slots">
+          ${["QB", "RB", "WR", "TE", "K", "DST"].map((position) => `
+            <span>${position}: <strong>${team.rosterCounts[position] ?? 0}</strong></span>
+          `).join("")}
+        </div>
+        <div class="meta">${needed.length > 0 ? `Needs ${needed.join(", ")}` : "Required starters filled"}</div>
+        <div class="mini-list roster-mini">
+          ${team.roster.slice(0, 8).map((player) => `
+            <div class="mini-row">
+              <strong>${player.pickNumber}. ${escapeHtml(player.name)}</strong>
+              <span class="meta">${player.position} - ${escapeHtml(player.team)}</span>
+            </div>
+          `).join("") || `<div class="meta">No picks yet.</div>`}
+        </div>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderAvailable() {
@@ -547,6 +606,10 @@ function renderLeagueSummary() {
       <div>Reception: <strong>${summary.scoring.reception}</strong></div>
       <div>Pass TD: <strong>${summary.scoring.passingTd}</strong></div>
       ${summary.selectedTeam ? `<div>Yahoo team: <strong>${escapeHtml(summary.selectedTeam)}</strong></div>` : ""}
+      <div>Draft key: <strong>${escapeHtml(activeDraftKey)}</strong></div>
+      <div>Sync: <strong>${escapeHtml(latestSyncStatus.status)}</strong></div>
+      <div>Highest pick: <strong>${latestSyncStatus.highestPick}</strong></div>
+      <div>Updated: <strong>${latestSyncStatus.updatedAt ? formatDate(latestSyncStatus.updatedAt) : "Not synced"}</strong></div>
     </div>
     <div class="slot-list">
       ${Object.entries(summary.rosterSlots).map(([slot, count]) => `
@@ -557,18 +620,87 @@ function renderLeagueSummary() {
   `;
 }
 
+function saveActiveDraftSession() {
+  if (!activeDraftKey || !state) return;
+  draftSessions.set(activeDraftKey, {
+    activeLeague,
+    state,
+    latestSyncStatus,
+    recommendationsPaused,
+  });
+}
+
+function switchToDraftSession(league, selectedLeague = null) {
+  saveActiveDraftSession();
+  activeLeague = league;
+  activeDraftKey = draftKeyForLeague(league, selectedLeague);
+  const existing = draftSessions.get(activeDraftKey);
+  if (existing) {
+    state = existing.state;
+    activeLeague = existing.activeLeague;
+    latestSyncStatus = existing.latestSyncStatus;
+    recommendationsPaused = existing.recommendationsPaused;
+    activeTeams = state.teams;
+    return;
+  }
+
+  activeTeams = buildTeamsForLeague(activeLeague);
+  state = createDraftState(activeLeague, activeTeams, playerPool);
+  latestSyncStatus = {
+    status: activeLeague.leagueKey ? "manual_required" : "mock",
+    highestPick: 0,
+    updatedAt: new Date().toISOString(),
+    message: activeLeague.leagueKey ? "No Yahoo draft sync loaded yet" : "Manual mock mode",
+  };
+  saveActiveDraftSession();
+}
+
+function draftKeyForLeague(league, selectedLeague = null) {
+  const leagueKey = league?.leagueKey ?? selectedLeague?.leagueKey ?? "mock";
+  const teamKey = league?.selectedTeamKey ?? selectedLeague?.selectedTeamKey ?? selectedLeague?.primaryTeam?.teamKey ?? league?.userTeamId ?? "team";
+  return `${leagueKey}:${teamKey}`;
+}
+
+function teamNameFromLeagueMetadata(league, draftSlot) {
+  const teams = league.importSource?.selectedLeague?.teams ?? league.yahooTeams ?? [];
+  const team = teams.find((candidate) => {
+    const keySlot = Number(String(candidate.teamKey ?? "").match(/\.t\.(\d+)$/)?.[1]);
+    return keySlot === draftSlot || Number(candidate.teamId) === draftSlot;
+  });
+  return team?.name ?? null;
+}
+
+function yahooTeamKeyFromLeagueMetadata(league, draftSlot) {
+  const teams = league.importSource?.selectedLeague?.teams ?? league.yahooTeams ?? [];
+  const team = teams.find((candidate) => {
+    const keySlot = Number(String(candidate.teamKey ?? "").match(/\.t\.(\d+)$/)?.[1]);
+    return keySlot === draftSlot || Number(candidate.teamId) === draftSlot;
+  });
+  return team?.teamKey ?? null;
+}
+
 function buildTeamsForLeague(league) {
   return Array.from({ length: league.teams }, (_, index) => ({
     teamId: `team_${index + 1}`,
-    name: index + 1 === league.draft.userDraftSlot ? "My Team" : `Opponent ${index + 1}`,
+    name: teamNameFromLeagueMetadata(league, index + 1) ?? (index + 1 === league.draft.userDraftSlot ? "My Team" : `Opponent ${index + 1}`),
+    yahooTeamKey: yahooTeamKeyFromLeagueMetadata(league, index + 1),
     draftSlot: index + 1,
     picks: [],
   }));
 }
 
 function resetDraftState() {
+  saveActiveDraftSession();
   activeTeams = buildTeamsForLeague(activeLeague);
   state = createDraftState(activeLeague, activeTeams, playerPool);
+  activeDraftKey = draftKeyForLeague(activeLeague);
+  latestSyncStatus = {
+    status: activeLeague.leagueKey ? "manual_required" : "mock",
+    highestPick: 0,
+    updatedAt: new Date().toISOString(),
+    message: activeLeague.leagueKey ? "No Yahoo draft sync loaded yet" : "Manual mock mode",
+  };
+  saveActiveDraftSession();
 }
 
 async function importSampleYahooLeague() {
@@ -610,12 +742,17 @@ async function loadSavedYahooLeagueProfile() {
     if (!response.ok) return;
     const profile = await response.json();
     if (!profile.exists || !profile.yahooSettings) return;
-    activeLeague = buildLeagueFromYahooSettings(mockLeague, profile.yahooSettings, profile.selectedLeague ?? {});
+    activeLeague = buildLeagueFromYahooSettings(mockLeague, profile.yahooSettings, {
+      ...(profile.selectedLeague ?? {}),
+      selectedLeague: profile.selectedLeague ?? null,
+      selectedTeamKey: profile.selectedLeague?.selectedTeamKey,
+      selectedTeamName: profile.selectedLeague?.selectedTeamName,
+    });
     els.leagueSettingsJson.value = JSON.stringify(profile.yahooSettings, null, 2);
     els.leagueImportMessage.textContent = profile.savedAt
       ? `Loaded saved Yahoo settings from ${formatDate(profile.savedAt)}.`
       : "Loaded saved Yahoo settings.";
-    resetDraftState();
+    switchToDraftSession(activeLeague, profile.selectedLeague);
     syncScenarioControlsToLeague();
   } catch {
     els.leagueImportMessage.textContent = "Could not load the saved Yahoo settings profile.";
@@ -807,9 +944,10 @@ async function importSelectedYahooLeagueSettings() {
       selectedTeamKey: selectedLeague?.primaryTeam?.teamKey,
       selectedTeamName: selectedLeague?.primaryTeam?.name,
       selectedLeagueLabel: selectedLeague?.label,
+      selectedLeague,
     });
     els.leagueSettingsJson.value = JSON.stringify(payload, null, 2);
-    resetDraftState();
+    switchToDraftSession(activeLeague, selectedLeague);
     await saveActiveYahooLeagueProfile(payload, `Imported and saved ${activeLeague.name}.`, {
       leagueKey,
       leagueId: selectedLeague?.leagueId,
@@ -818,6 +956,7 @@ async function importSelectedYahooLeagueSettings() {
       selectedTeamKey: selectedLeague?.primaryTeam?.teamKey,
       selectedTeamName: selectedLeague?.primaryTeam?.name,
       selectedLeagueLabel: selectedLeague?.label,
+      teams: selectedLeague?.teams ?? [],
     });
     const teamMessage = selectedLeague?.primaryTeam?.name ? ` for ${selectedLeague.primaryTeam.name}` : "";
     els.yahooMessage.textContent = `Imported read-only settings for ${activeLeague.name}${teamMessage}.`;
@@ -829,19 +968,45 @@ async function importSelectedYahooLeagueSettings() {
 }
 
 async function loadSelectedYahooDraftResults() {
+  return syncSelectedYahooDraftResults({ quiet: false });
+}
+
+async function syncSelectedYahooDraftResults({ quiet = false } = {}) {
   const leagueKey = els.yahooLeagueSelect.value;
   if (!leagueKey) {
     els.yahooMessage.textContent = "Discover Yahoo leagues, then select one before loading draft results.";
+    updateYahooDraftSyncStatus({
+      status: "manual_required",
+      message: "No Yahoo league selected for draft-results sync.",
+    });
     return;
   }
 
   try {
     const response = await fetch(`/api/yahoo/draft-results?leagueKey=${encodeURIComponent(leagueKey)}&playerPool=${encodeURIComponent(playerPoolMode)}`, { cache: "no-store" });
     const payload = await response.json();
+    let syncSummary = null;
+    if (response.ok) {
+      syncSummary = applyYahooDraftEventsToState(state, payload.picks ?? []);
+      updateYahooDraftSyncStatus({
+        status: syncSummary.manualRequired.length > 0 ? "manual_required" : "synced",
+        highestPick: Math.max(latestSyncStatus.highestPick ?? 0, payload.summary?.pickCount ?? 0, state.currentPick - 1),
+        message: buildYahooDraftResultsMessage(payload, syncSummary),
+        leagueKey,
+      });
+    } else {
+      updateYahooDraftSyncStatus({
+        status: "unavailable",
+        message: payload.error ?? "Could not load Yahoo draft results.",
+        leagueKey,
+      });
+    }
     els.yahooMessage.textContent = response.ok
-      ? buildYahooDraftResultsMessage(payload, applyYahooDraftEventsToState(state, payload.picks ?? []))
+      ? latestSyncStatus.message
       : payload.error ?? "Could not load Yahoo draft results.";
-    els.yahooOutput.textContent = JSON.stringify(payload, null, 2);
+    if (!quiet || !response.ok) {
+      els.yahooOutput.textContent = JSON.stringify(payload, null, 2);
+    }
     if (response.ok) {
       syncScenarioControlsToLeague();
       render();
@@ -849,6 +1014,12 @@ async function loadSelectedYahooDraftResults() {
     }
   } catch (error) {
     els.yahooMessage.textContent = error.message;
+    updateYahooDraftSyncStatus({
+      status: "unavailable",
+      message: error.message,
+      leagueKey,
+    });
+    renderYahooDraftSyncStatus();
   }
 }
 
@@ -874,6 +1045,66 @@ function renderYahooLeagueOptions() {
     `).join("");
   els.importYahooLeague.disabled = yahooLeagueOptions.length === 0;
   els.loadYahooDraftResults.disabled = yahooLeagueOptions.length === 0;
+  els.startYahooDraftPolling.disabled = yahooLeagueOptions.length === 0 || Boolean(yahooDraftPollingTimer);
+  els.stopYahooDraftPolling.disabled = !yahooDraftPollingTimer;
+}
+
+async function startYahooDraftPolling() {
+  if (yahooDraftPollingTimer) return;
+  await syncSelectedYahooDraftResults({ quiet: false });
+  yahooDraftPollingTimer = window.setInterval(() => {
+    syncSelectedYahooDraftResults({ quiet: true });
+  }, 15_000);
+  updateYahooDraftSyncStatus({
+    status: latestSyncStatus.status === "unavailable" ? "stale" : latestSyncStatus.status,
+    message: `${latestSyncStatus.message} Polling every 15 seconds.`,
+    pollActive: true,
+  });
+  renderYahooLeagueOptions();
+  renderYahooDraftSyncStatus();
+}
+
+function stopYahooDraftPolling(message = null) {
+  if (yahooDraftPollingTimer) {
+    window.clearInterval(yahooDraftPollingTimer);
+    yahooDraftPollingTimer = null;
+  }
+  updateYahooDraftSyncStatus({
+    status: latestSyncStatus.status,
+    message: message ?? latestSyncStatus.message,
+    pollActive: false,
+  });
+  renderYahooLeagueOptions();
+  renderYahooDraftSyncStatus();
+}
+
+function updateYahooDraftSyncStatus(patch) {
+  latestSyncStatus = {
+    ...latestSyncStatus,
+    ...patch,
+    updatedAt: new Date().toISOString(),
+    pollActive: patch.pollActive ?? Boolean(yahooDraftPollingTimer),
+  };
+}
+
+function renderYahooDraftSyncStatus() {
+  els.yahooDraftSyncStatus.className = `sync-status sync-${latestSyncStatus.status}`;
+  els.yahooDraftSyncStatus.innerHTML = `
+    <span><strong>Draft sync:</strong> ${formatSyncStatus(latestSyncStatus.status)}</span>
+    <span>Highest pick: <strong>${latestSyncStatus.highestPick ?? 0}</strong></span>
+    <span>${latestSyncStatus.pollActive ? "Polling active" : "Manual refresh"}</span>
+    <span>${latestSyncStatus.updatedAt ? `Updated ${formatDate(latestSyncStatus.updatedAt)}` : "Not synced"}</span>
+  `;
+}
+
+function formatSyncStatus(status) {
+  return {
+    synced: "Synced",
+    stale: "Stale",
+    unavailable: "Unavailable",
+    manual_required: "Manual correction needed",
+    mock: "Mock mode",
+  }[status] ?? status;
 }
 
 function buildYahooStatusMessage(payload) {

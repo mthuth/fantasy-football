@@ -24,6 +24,9 @@ export function buildLeagueFromYahooSettings(baseLeague, yahooPayload, options =
     leagueId: imported.leagueId ?? baseLeague.leagueId,
     leagueKey: imported.leagueKey ?? baseLeague.leagueKey,
     name: imported.name ?? baseLeague.name,
+    selectedTeamKey: options.selectedTeamKey ?? null,
+    selectedTeamName: options.selectedTeamName ?? null,
+    yahooTeams: options.selectedLeague?.teams ?? options.yahooTeams ?? [],
     platform: "yahoo",
     season: imported.season ?? baseLeague.season,
     scoring: imported.scoring,
@@ -39,6 +42,7 @@ export function buildLeagueFromYahooSettings(baseLeague, yahooPayload, options =
       selectedTeamKey: options.selectedTeamKey ?? null,
       selectedTeamName: options.selectedTeamName ?? null,
       selectedLeagueLabel: options.selectedLeagueLabel ?? null,
+      selectedLeague: options.selectedLeague ?? null,
     },
   };
 }

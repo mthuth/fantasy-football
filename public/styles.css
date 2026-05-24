@@ -320,6 +320,34 @@ textarea {
   white-space: pre-wrap;
 }
 
+.sync-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.sync-status span {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 7px 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sync-synced span:first-child {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.sync-unavailable span:first-child,
+.sync-manual_required span:first-child,
+.sync-stale span:first-child {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
 .slot-list {
   display: flex;
   flex-wrap: wrap;
@@ -333,6 +361,41 @@ textarea {
   padding: 7px 9px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.league-roster-view {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.team-roster-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.team-roster-card.mine {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+
+.team-roster-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.compact-slots {
+  gap: 6px;
+}
+
+.compact-slots span {
+  padding: 5px 7px;
 }
 
 .review-section h3 {
@@ -536,7 +599,8 @@ code {
 
   .sim-controls,
   .comparison-grid,
-  .replay-body {
+  .replay-body,
+  .league-roster-view {
     grid-template-columns: 1fr;
   }
 
