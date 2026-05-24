@@ -43,6 +43,7 @@ assert.equal(normalized.summary.pickCount, 2);
 assert.equal(normalized.summary.mappedPickCount, 1);
 assert.equal(normalized.summary.unmappedPlayerCount, 1);
 assert.equal(normalized.leagueKey, "461.l.12345");
+assert.equal(normalized.syncStatus, "needs_review");
 assert.equal(normalized.eventCount, 2);
 assert.equal(normalized.unmatchedCount, 1);
 assert.equal(normalized.picks[0].pickNumber, 1);
@@ -89,6 +90,7 @@ const mappedDraftOrder = normalizeYahooDraftResults({
 assert.equal(mappedDraftOrder.picks[0].teamId, "team_2");
 assert.equal(mappedDraftOrder.events[0].teamId, "2");
 assert.equal(mappedDraftOrder.picks[0].round, 1);
+assert.equal(mappedDraftOrder.syncStatus, "synced");
 
 console.log(JSON.stringify({
   status: "passed",

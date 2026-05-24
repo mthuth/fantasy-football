@@ -80,7 +80,7 @@ export function normalizeYahooDraftResults(payload, options = {}) {
 
   return {
     leagueKey,
-    syncStatus: conflicts.length === 0 ? "synced" : "needs_review",
+    syncStatus: conflicts.length === 0 && unmappedPlayers.length === 0 ? "synced" : "needs_review",
     eventCount: events.length,
     unmatchedCount: unmappedPlayers.length,
     events,
