@@ -6,6 +6,7 @@ import { YahooReadOnlyConnector } from "../src/connectors/yahoo/YahooReadOnlyCon
 import { loadYahooTokens, saveYahooTokens } from "../src/connectors/yahoo/YahooTokenStore.mjs";
 import { normalizeYahooDraftResults } from "../src/connectors/yahoo/yahooDraftResultsNormalizer.mjs";
 import { discoverYahooLeagueOptions } from "../src/connectors/yahoo/yahooLeagueDiscovery.mjs";
+import { normalizeYahooLeagueTeams, normalizeYahooTeamRoster } from "../src/connectors/yahoo/yahooRosterNormalizer.mjs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import path from "node:path";
@@ -268,6 +269,38 @@ async function handleYahooApi(request, response, url) {
           teamCount: mockLeague.teams,
         }),
         raw,
+      });
+      return;
+    }
+
+    if (url.pathname === "/api/yahoo/league-rosters" && request.method === "GET") {
+      const leagueKey = url.searchParams.get("leagueKey");
+      if (!leagueKey) throw new Error("leagueKey is required.");
+      const connector = await buildAuthorizedYahooConnector();
+      const rawTeams = await connector.readLeagueTeams(leagueKey);
+      const externalIds = await loadExternalPlayerIds();
+      const players = await loadCanonicalPlayers();
+      const playerPool = await loadServerPlayerPool(url.searchParams.get("playerPool") === "generated");
+      const teams = normalizeYahooLeagueTeams(rawTeams);
+      const rosters = [];
+
+      for (const team of teams) {
+        const rawRoster = await connector.readTeamRoster(team.teamKey);
+        rosters.push({
+          ...team,
+          roster: normalizeYahooTeamRoster(rawRoster, { externalIds, players, playerPool }),
+          raw: rawRoster,
+        });
+      }
+
+      sendJson(response, 200, {
+        leagueKey,
+        syncStatus: rosters.length > 0 ? "synced" : "manual_required",
+        teamCount: teams.length,
+        rosteredPlayerCount: rosters.reduce((sum, team) => sum + team.roster.length, 0),
+        unmatchedPlayerCount: rosters.reduce((sum, team) => sum + team.roster.filter((player) => player.matchStatus !== "matched").length, 0),
+        teams: rosters,
+        rawTeams,
       });
       return;
     }

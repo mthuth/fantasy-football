@@ -17,23 +17,28 @@ export const DEFAULT_SCORING = {
 };
 
 export function scoreProjection(stats = {}, scoring = DEFAULT_SCORING) {
-  return (
-    (stats.passingYards ?? 0) * scoring.passingYards +
-    (stats.passingTd ?? 0) * scoring.passingTd +
-    (stats.interception ?? 0) * scoring.interception +
-    (stats.rushingYards ?? 0) * scoring.rushingYards +
-    (stats.rushingTd ?? 0) * scoring.rushingTd +
-    (stats.receivingYards ?? 0) * scoring.receivingYards +
-    (stats.receivingTd ?? 0) * scoring.receivingTd +
-    (stats.reception ?? 0) * scoring.reception +
-    (stats.fumbleLost ?? 0) * scoring.fumbleLost +
-    (stats.fieldGoal ?? 0) * scoring.fieldGoal +
-    (stats.extraPoint ?? 0) * scoring.extraPoint +
-    (stats.dstSack ?? 0) * scoring.dstSack +
-    (stats.dstTakeaway ?? 0) * scoring.dstTakeaway +
-    (stats.dstTd ?? 0) * scoring.dstTd +
-    (stats.dstPointsAllowed ?? 0) * scoring.dstPointsAllowed
-  );
+  return explainProjection(stats, scoring).total;
+}
+
+export function explainProjection(stats = {}, scoring = DEFAULT_SCORING) {
+  const components = SCORING_COMPONENTS
+    .map((component) => {
+      const stat = stats[component.key] ?? 0;
+      const rate = scoring[component.key] ?? 0;
+      return {
+        key: component.key,
+        label: component.label,
+        stat: round(stat, 2),
+        rate: round(rate, 3),
+        points: round(stat * rate, 2),
+      };
+    })
+    .filter((component) => component.stat !== 0 || component.points !== 0);
+
+  return {
+    total: round(components.reduce((sum, component) => sum + component.points, 0), 2),
+    components,
+  };
 }
 
 export function round(value, places = 1) {
@@ -41,3 +46,20 @@ export function round(value, places = 1) {
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
 
+const SCORING_COMPONENTS = [
+  { key: "passingYards", label: "Pass yards" },
+  { key: "passingTd", label: "Pass TD" },
+  { key: "interception", label: "Interceptions" },
+  { key: "rushingYards", label: "Rush yards" },
+  { key: "rushingTd", label: "Rush TD" },
+  { key: "receivingYards", label: "Receiving yards" },
+  { key: "receivingTd", label: "Receiving TD" },
+  { key: "reception", label: "Receptions" },
+  { key: "fumbleLost", label: "Fumbles lost" },
+  { key: "fieldGoal", label: "Field goals" },
+  { key: "extraPoint", label: "Extra points" },
+  { key: "dstSack", label: "DST sacks" },
+  { key: "dstTakeaway", label: "DST takeaways" },
+  { key: "dstTd", label: "DST TD" },
+  { key: "dstPointsAllowed", label: "DST points allowed" },
+];

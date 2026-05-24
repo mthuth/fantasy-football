@@ -81,6 +81,8 @@ The dashboard must support:
 - Viewing final roster review after a draft.
 - Browsing saved simulation reports.
 - Opening a saved simulation report from the dashboard.
+- Viewing compact league-wide rosters for all teams during a draft.
+- Starting and stopping read-only Yahoo draft-results polling when a Yahoo league is selected.
 
 ### 4.2 Mock Draft Mode
 
@@ -112,6 +114,7 @@ The draft state engine must track:
 - Pick history.
 - Available players.
 - Team rosters.
+- League-wide roster snapshots scoped to the active league.
 - User roster needs.
 - Manual draft events.
 
@@ -211,6 +214,8 @@ The initial post-draft outputs must include:
 - Waiver watch list.
 - Trade target watch list.
 - Roster weakness summary.
+- Drop-candidate scoring in mock/dry-run mode.
+- Trade proposal scoring in mock/dry-run mode.
 
 The system must not generate production waiver claims or trade offers in the MVP.
 
@@ -518,6 +523,8 @@ For the draft MVP:
 For future production modes:
 - Write actions must be capability-gated.
 - Write actions must be approval-gated.
+- Paid-league actions must require a separate paid-league confirmation.
+- Payment and league entry actions must remain outside agent execution.
 - Paid leagues must require stronger confirmation.
 - The system must not deposit funds, withdraw funds, enter paid contests, or modify payment settings.
 - The system must not collect or store Yahoo passwords.

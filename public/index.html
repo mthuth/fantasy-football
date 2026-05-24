@@ -28,6 +28,7 @@
           <button id="load-yahoo-teams-btn" class="secondary">Load Yahoo Teams</button>
           <button id="discover-yahoo-leagues-btn" class="secondary">Discover Leagues</button>
           <button id="load-yahoo-draft-results-btn" class="secondary">Load Draft Results</button>
+          <button id="load-yahoo-rosters-btn" class="secondary">Load Rosters</button>
           <button id="start-yahoo-draft-polling-btn" class="secondary">Start Polling</button>
           <button id="stop-yahoo-draft-polling-btn" class="secondary">Stop Polling</button>
         </div>
@@ -58,6 +59,53 @@
           <textarea id="league-settings-json" rows="5" placeholder="Paste Yahoo league settings JSON here"></textarea>
           <div id="league-import-message" class="meta"></div>
         </div>
+        <div class="strategy-controls">
+          <div>
+            <label for="strategy-profile">Draft strategy</label>
+            <select id="strategy-profile">
+              <option value="balanced">Balanced</option>
+              <option value="hero_rb">Hero RB</option>
+              <option value="zero_rb">Zero RB</option>
+              <option value="robust_rb">Robust RB</option>
+              <option value="elite_qb">Elite QB</option>
+              <option value="best_player_available">Best Player Available</option>
+            </select>
+          </div>
+          <div>
+            <label for="risk-profile">Risk profile</label>
+            <select id="risk-profile">
+              <option value="balanced">Balanced</option>
+              <option value="safe_floor">Safe Floor</option>
+              <option value="upside_heavy">Upside Heavy</option>
+            </select>
+          </div>
+          <label class="check-control" for="prefer-stacking">
+            <input id="prefer-stacking" type="checkbox">
+            <span>Prefer QB stacks</span>
+          </label>
+          <div>
+            <label for="avoid-teams">Avoid teams</label>
+            <input id="avoid-teams" type="text" placeholder="DAL, CLE">
+          </div>
+          <div>
+            <label for="avoid-players">Avoid players</label>
+            <input id="avoid-players" type="text" placeholder="Comma-separated names">
+          </div>
+          <div id="strategy-message" class="meta strategy-message"></div>
+        </div>
+        <div class="projection-import-controls">
+          <div>
+            <label for="projection-source-name">Projection source</label>
+            <input id="projection-source-name" type="text" value="manual_projection_source">
+          </div>
+          <div>
+            <label for="projection-file">Projection JSON file</label>
+            <input id="projection-file" type="file" accept="application/json,.json">
+          </div>
+          <button id="import-projection-source-btn" class="secondary">Import Projections</button>
+          <textarea id="projection-json" rows="5" placeholder='Paste JSON rows with playerId and projectedPoints'></textarea>
+          <div id="projection-import-message" class="meta"></div>
+        </div>
         <div id="league-summary" class="league-summary"></div>
       </section>
 
@@ -82,6 +130,17 @@
             <button id="draft-me-btn" class="secondary">I Drafted This Player</button>
           </div>
         </div>
+        <div class="rehearsal-controls">
+          <label for="rehearsal-mode">Draft rehearsal sync</label>
+          <select id="rehearsal-mode">
+            <option value="synced">Synced picks</option>
+            <option value="stale">Stale feed</option>
+            <option value="unmapped">Unmapped player</option>
+            <option value="conflict">Pick conflict</option>
+          </select>
+          <button id="rehearsal-sync-btn" class="secondary">Run Rehearsal Sync</button>
+        </div>
+        <div id="manual-sync-resolution" class="manual-sync-resolution"></div>
         <div id="draft-log" class="draft-log"></div>
       </section>
 

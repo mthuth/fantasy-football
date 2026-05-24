@@ -22,6 +22,13 @@ for (const id of [
   "manual-player-select",
   "import-sample-league-btn",
   "import-custom-league-btn",
+  "strategy-profile",
+  "risk-profile",
+  "prefer-stacking",
+  "import-projection-source-btn",
+  "rehearsal-mode",
+  "rehearsal-sync-btn",
+  "manual-sync-resolution",
   "run-simulations-btn",
   "sim-teams",
   "sim-draft-slot",
@@ -57,6 +64,10 @@ assert.ok(app.includes("/data/mock/current_player_pool.json"), "generated player
 assert.ok(app.includes("/data/simulations/index.json"), "simulation report index should be loaded by the dashboard");
 assert.ok(app.includes("Recommendations paused"), "pause state should have visible copy");
 assert.ok(app.includes("Source confidence"), "recommendation cards should show source confidence");
+assert.ok(app.includes("strategyPreference"), "recommendation cards should include strategy preference adjustments");
+assert.ok(app.includes("buildRehearsalDraftEvents"), "dashboard should support Yahoo-like draft rehearsal sync");
+assert.ok(app.includes("resolveManualSyncWithSelected"), "dashboard should support manual sync issue resolution");
+assert.ok(app.includes("mergeProjectionSource"), "dashboard should support projection source imports");
 assert.ok(app.includes("Latest Batch Comparison"), "dashboard should render strategy comparison output");
 assert.ok(app.includes("Turn Replay"), "dashboard should render saved recommendation replay details");
 
@@ -68,6 +79,7 @@ console.log(JSON.stringify({
     "dashboard API endpoints are wired in app and server",
     "generated pool and report index hooks exist",
     "pause and source-confidence UI copy exists",
+    "strategy, rehearsal, and projection import hooks exist",
     "scenario controls and replay UI copy exists",
   ],
 }, null, 2));

@@ -297,3 +297,47 @@ Your answer: keep synthetic K/DST for generated mock mode
 - Added Yahoo player ID matching through canonical external IDs with unmapped-player quarantine.
 - Added manual conflict detection for Yahoo draft sync versus local board state.
 - Added draft-results sync tests.
+- Added league-scoped roster snapshot generation and a compact all-team roster view in the dashboard.
+- Added read-only Yahoo draft-results polling controls with sync status, highest observed pick, stale/unavailable/manual-required states, and manual fallback.
+- Added player pool data-quality audit scaffolding, including K/DST coverage checks and Yahoo external-ID gap detection.
+- Added waiver pickup ranking, drop-candidate scoring, trade proposal scoring, and trade partner discovery foundations for mock/dry-run mode.
+- Added approval card, approval audit, and production action guardrails for Slack/Teams/Messenger-style review flows.
+
+## Open Strategy Decisions
+
+These questions were carried forward from the older planning file in `/Users/matthuth/Documents/New project/DECISIONS.md`. They are not blockers for the current local mock/dashboard build, but they should be answered before real-season usage or broader automation.
+
+### League Scope
+
+- Should the product optimize for one Yahoo league first, or support multiple Yahoo leagues from day one?
+
+### Automation Policy
+
+- Can low-risk actions become auto-approved later, or should every paid Yahoo league action always require explicit approval?
+- Should every production action require a successful dry run first?
+- Should mock mode keep a full decision log?
+
+### Draft Strategy Preferences
+
+- Which draft strategy profile should the agent prefer by default: balanced, hero RB, zero RB, robust RB, elite QB, or best player available?
+- How aggressive should the agent be by default: safe floor, balanced, or upside-heavy?
+- Should the agent avoid specific players or NFL teams you personally dislike?
+- Should the agent prefer QB/WR stacking when values are close?
+
+### Recommendation Workflow
+
+- Should draft alerts be dashboard-only, or should Slack/Teams alerts be added?
+- Should manual draft-board corrections stay in the main dashboard, or move to a separate admin/debug panel?
+
+### Waiver and Trade Strategy
+
+- Should waiver recommendations include FAAB dollar ranges?
+- Should trade scoring optimize weekly wins, playoff odds, long-term roster value, or a blended score?
+
+## Production Blockers To Resolve Before Real-Season Use
+
+- Test Yahoo OAuth and read-only draft-results polling against a real Yahoo league or controlled Yahoo mock draft.
+- Choose and license or approve the first real projection/ranking/ADP source.
+- Complete Yahoo player ID mappings for the active player pool, especially K/DST records.
+- Decide the first approval channel implementation: Slack, Teams, Messenger, email, or dashboard-only.
+- Keep all Yahoo write actions disabled until capability gating, user approval, and paid-league confirmation are verified end to end.

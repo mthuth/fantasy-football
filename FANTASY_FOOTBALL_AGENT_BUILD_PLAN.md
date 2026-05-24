@@ -149,6 +149,8 @@ Definition of done:
 - After every pick, the available player pool and all team rosters update correctly.
 - Manual overrides trigger the same recalculation as synced picks.
 - The engine can run from a mock draft transcript.
+- The dashboard exposes compact league-wide roster state for the active league only.
+- Yahoo draft-results polling records sync status and keeps manual correction controls available.
 
 ## Workstream 5: Draft Valuation Algorithm
 
@@ -260,6 +262,8 @@ Current implementation notes:
 - The dashboard can load selected league draft results and apply mapped sequential picks to the local draft board.
 - Manual board conflicts and unmapped Yahoo players stop sync with a visible manual-correction message.
 - Yahoo draft result normalization and board application are covered by `npm run test:yahoo-draft-results`, `npm run test:yahoo-draft-results-sync`, and `npm run test:yahoo-draft-sync`.
+- League-wide roster snapshots and the all-team dashboard roster view are covered by `npm run test:league-rosters`.
+- Dashboard Yahoo draft-results polling controls show synced, stale, unavailable, and manual-required status while keeping manual board correction available.
 
 ## Workstream 8: UI or Delivery Channel
 
@@ -319,9 +323,14 @@ Early deliverables:
 - Generate post-draft waiver watch list.
 - Generate post-draft trade target list.
 - Store waiver and trade scores using the same source trace model.
+- Score waiver pickups and drop candidates in mock/dry-run mode.
+- Score proposed trades and identify likely partner teams from roster needs.
+- Generate approval cards and audit entries for future Slack/Teams/Messenger review flows.
+- Block production write actions unless future capability gates and explicit approvals are enabled.
 
 Definition of done:
 - After a mock draft, the agent can identify roster weaknesses and waiver watch targets.
+- Waiver, drop, trade, approval, and guardrail foundations are covered by local tests.
 
 ## First Concrete Build Tasks
 

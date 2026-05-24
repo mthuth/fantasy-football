@@ -253,6 +253,39 @@ textarea {
   font-weight: 650;
 }
 
+.strategy-note {
+  border-left: 3px solid var(--accent);
+  margin: 8px 0 10px;
+  padding: 7px 9px;
+  background: #f0fdfa;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.projection-math {
+  margin: 10px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: white;
+}
+
+.projection-math summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.projection-components {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .yahoo-dev-panel,
 .league-import-panel,
 .review-panel,
@@ -283,17 +316,78 @@ textarea {
   gap: 10px;
 }
 
-.league-import-controls {
+.league-import-controls,
+.strategy-controls,
+.projection-import-controls,
+.rehearsal-controls {
   display: grid;
   gap: 8px;
   margin-bottom: 14px;
 }
 
 .league-import-controls label,
-.yahoo-league-picker label {
+.yahoo-league-picker label,
+.strategy-controls label,
+.projection-import-controls label,
+.rehearsal-controls label {
   color: var(--muted);
   font-size: 12px;
   font-weight: 750;
+}
+
+.strategy-controls {
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  align-items: end;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.strategy-message {
+  align-self: center;
+}
+
+.projection-import-controls {
+  grid-template-columns: minmax(180px, 0.8fr) minmax(180px, 1fr) auto;
+  align-items: end;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.projection-import-controls textarea,
+.projection-import-controls .meta {
+  grid-column: 1 / -1;
+}
+
+.rehearsal-controls {
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.rehearsal-controls label {
+  grid-column: 1 / -1;
+}
+
+.manual-sync-resolution {
+  margin-bottom: 14px;
+}
+
+.manual-sync-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff7ed;
+}
+
+.manual-sync-card strong {
+  color: var(--warn);
 }
 
 .yahoo-league-picker {
@@ -600,7 +694,10 @@ code {
   .sim-controls,
   .comparison-grid,
   .replay-body,
-  .league-roster-view {
+  .league-roster-view,
+  .strategy-controls,
+  .projection-import-controls,
+  .rehearsal-controls {
     grid-template-columns: 1fr;
   }
 
@@ -611,5 +708,10 @@ code {
 
   .yahoo-league-picker {
     grid-template-columns: 1fr;
+  }
+
+  .manual-sync-card {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

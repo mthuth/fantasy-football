@@ -42,6 +42,18 @@ data/auth/yahoo_tokens.json
 
 That folder is ignored by git.
 
+## Live Draft Readiness Check
+
+Run this before a Yahoo-connected draft rehearsal:
+
+```text
+npm run yahoo:readiness
+```
+
+The check is read-only. It verifies local OAuth configuration, saved token shape,
+selected league/team metadata, Yahoo player mapping coverage, and whether draft
+results sync has been proven for the selected league.
+
 ## Current Read-Only Endpoints
 
 ```text

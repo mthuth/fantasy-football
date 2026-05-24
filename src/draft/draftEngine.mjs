@@ -1,9 +1,10 @@
-import { scoreProjection, round } from "../valuation/scoring.mjs";
+import { explainProjection, scoreProjection, round } from "../valuation/scoring.mjs";
 import {
   sourceConfidenceForPlayer,
   sourceTraceForPlayer,
   sourceWarningForRecommendation,
 } from "./sourceConfidence.mjs";
+import { scoreStrategyPreference } from "./strategyPreferences.mjs";
 
 const FLEX_POSITIONS = new Set(["RB", "WR", "TE"]);
 const REPLACEMENT_DEPTH = { QB: 10, RB: 28, WR: 34, TE: 10, K: 8, DST: 8 };
@@ -14,7 +15,7 @@ export function createDraftState(league, teams, players) {
     teams: teams.map((team) => ({ ...team, picks: [] })),
     players: players.map((player) => ({
       ...player,
-      projectedPoints: round(scoreProjection(player.stats, league.scoring), 2),
+      projectedPoints: round(Number.isFinite(player.projectedPoints) ? player.projectedPoints : scoreProjection(player.stats, league.scoring), 2),
     })),
     drafted: [],
     currentPick: 1,
@@ -115,11 +116,12 @@ export function scoreRosterFit(league, roster, candidate) {
   return directNeed + flexNeed + earlyKickerDefensePenalty + depthPenalty;
 }
 
-export function recommendPlayers(state, teamId = state.league.userTeamId, limit = 5) {
+export function recommendPlayers(state, teamId = state.league.userTeamId, limit = 5, options = {}) {
   const available = getAvailablePlayers(state);
   const roster = getTeamRoster(state, teamId);
   const replacement = getReplacementValues(state);
   const picksUntilNext = estimatePicksUntilNextTurn(state);
+  const strategyPreferences = options.strategyPreferences ?? state.league.strategyPreferences ?? {};
 
   const scored = available.map((player) => {
     const valueOverReplacement = player.projectedPoints - (replacement[player.position] ?? 0);
@@ -132,6 +134,12 @@ export function recommendPlayers(state, teamId = state.league.userTeamId, limit 
     const opponentBlockingValue = estimateOpponentNeed(state, player, picksUntilNext);
     const riskPenalty = player.risk;
     const sourceConfidence = sourceConfidenceForPlayer(player);
+    const strategyPreference = scoreStrategyPreference({
+      preferences: strategyPreferences,
+      roster,
+      player,
+      currentPick: state.currentPick,
+    });
     const finalScore =
       0.35 * marginalTeamValue +
       0.20 * valueOverReplacement +
@@ -141,12 +149,14 @@ export function recommendPlayers(state, teamId = state.league.userTeamId, limit 
       0.05 * rosterConstructionFit +
       0.05 * opponentBlockingValue -
       riskPenalty +
-      (sourceConfidence - 0.7) * 2;
+      (sourceConfidence - 0.7) * 2 +
+      strategyPreference.adjustment;
 
     return {
       player,
       finalScore: round(finalScore, 1),
       projectedPoints: round(player.projectedPoints, 1),
+      projectionExplanation: summarizeProjectionExplanation(player.stats, state.league.scoring),
       valueOverReplacement: round(valueOverReplacement, 1),
       marginalTeamValue: round(marginalTeamValue, 1),
       scarcityUrgency: round(scarcityUrgency, 1),
@@ -156,6 +166,7 @@ export function recommendPlayers(state, teamId = state.league.userTeamId, limit 
       rosterPressure: round(rosterPressure, 1),
       opponentBlockingValue: round(opponentBlockingValue, 1),
       riskPenalty: round(riskPenalty, 1),
+      strategyPreference,
       sourceConfidence: round(sourceConfidence, 2),
       sourceTrace: sourceTraceForPlayer(player),
       sourceWarning: sourceWarningForRecommendation(player, valueOverReplacement),
@@ -268,6 +279,21 @@ function estimateSurvivalProbability(state, player, picksUntilNext) {
   const needPressure = Math.max(0, Math.min(0.2, estimateOpponentNeed(state, player, picksUntilNext) / 60));
   const perPickSelection = Math.min(0.85, marketPressure + needPressure);
   return Math.max(0.01, Math.min(0.99, (1 - perPickSelection / Math.max(1, picksUntilNext)) ** picksUntilNext));
+}
+
+function summarizeProjectionExplanation(stats, scoring) {
+  const explanation = explainProjection(stats, scoring);
+  return {
+    total: round(explanation.total, 1),
+    components: explanation.components
+      .slice()
+      .sort((a, b) => Math.abs(b.points) - Math.abs(a.points))
+      .slice(0, 4)
+      .map((component) => ({
+        ...component,
+        points: round(component.points, 1),
+      })),
+  };
 }
 
 function buildPros(state, roster, player, valueOverReplacement, scarcityUrgency) {
